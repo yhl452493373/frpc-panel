@@ -1,0 +1,24 @@
+export GO111MODULE=on
+LDFLAGS := -s -w
+
+package: copy
+	sh ./package.sh
+
+copy: build
+	cp ./config/frpc-panel.toml ./release/frpc-panel.toml
+	cp -r ./assets/ ./release/assets/
+
+build:
+	env CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o ./release/frpc-panel-darwin-amd64 ./cmd/frpc-panel
+	env CGO_ENABLED=0 GOOS=freebsd GOARCH=386 go build -ldflags "$(LDFLAGS)" -o ./release/frpc-panel-freebsd-386 ./cmd/frpc-panel
+	env CGO_ENABLED=0 GOOS=freebsd GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o ./release/frpc-panel-freebsd-amd64 ./cmd/frpc-panel
+	env CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -ldflags "$(LDFLAGS)" -o ./release/frpc-panel-linux-386 ./cmd/frpc-panel
+	env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o ./release/frpc-panel-linux-amd64 ./cmd/frpc-panel
+	env CGO_ENABLED=0 GOOS=linux GOARCH=arm go build -ldflags "$(LDFLAGS)" -o ./release/frpc-panel-linux-arm ./cmd/frpc-panel
+	env CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o ./release/frpc-panel-linux-arm64 ./cmd/frpc-panel
+	env CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -ldflags "$(LDFLAGS)" -o ./release/frpc-panel-windows-386.exe ./cmd/frpc-panel
+	env CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o ./release/frpc-panel-windows-amd64.exe ./cmd/frpc-panel
+	env CGO_ENABLED=0 GOOS=linux GOARCH=mips64 go build -ldflags "$(LDFLAGS)" -o ./release/frpc-panel-linux-mips64 ./cmd/frpc-panel
+	env CGO_ENABLED=0 GOOS=linux GOARCH=mips64le go build -ldflags "$(LDFLAGS)" -o ./release/frpc-panel-linux-mips64le ./cmd/frpc-panel
+	env CGO_ENABLED=0 GOOS=linux GOARCH=mips GOMIPS=softfloat go build -ldflags "$(LDFLAGS)" -o ./release/frpc-panel-linux-mips ./cmd/frpc-panel
+	env CGO_ENABLED=0 GOOS=linux GOARCH=mipsle GOMIPS=softfloat go build -ldflags "$(LDFLAGS)" -o ./release/frpc-panel-linux-mipsle ./cmd/frpc-panel

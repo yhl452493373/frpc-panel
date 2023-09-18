@@ -1,0 +1,134 @@
+html, body {
+    padding: 0;
+    word-break: break-all;
+}
+
+section {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    padding: 15px;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.layui-layout-admin .layui-body {
+    padding: 0;
+}
+
+.layui-header {
+    line-height: 60px;
+    font-size: 16px;
+}
+
+.layui-layout-admin .layui-side {
+    width: 225px !important;
+}
+
+.layui-side-scroll {
+    width: 245px !important;
+    position: absolute !important;
+    top: 0 !important;
+    bottom: 24px !important;
+    height: auto !important;
+}
+
+.layui-logo {
+    width: 225px !important;
+}
+
+.layui-title {
+    position: absolute;
+    left: 225px !important;
+    right: 0;
+    top: 0;
+    height: 100%;
+    padding: 0 15px;
+    box-sizing: border-box;
+    display: flex;
+}
+
+.layui-title #title {
+    flex: 1;
+    display: inline-block;
+}
+
+.layui-title #logout{
+    display: inline-block;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.layui-nav.layui-nav-tree {
+    width: 225px !important;
+}
+
+.layui-body {
+    left: 225px;
+}
+
+#searchForm input {
+    height: 30px;
+    line-height: 28px;
+}
+
+#searchForm .layui-input-suffix,
+#searchForm .layui-input-prefix {
+    line-height: 30px;
+    padding: 0;
+}
+
+#addUserForm {
+    padding: 15px 15px 0 15px;
+}
+
+#addUserForm .layui-form-item:last-child {
+    margin-bottom: 0;
+}
+
+#addUserForm .layui-textarea {
+    min-height: 80px;
+    padding: 9px 10px;
+    resize: none;
+}
+
+.layui-form-label {
+    width: 140px;
+}
+
+.layui-input-block {
+    margin-left: 170px;
+}
+
+.layui-btn-sm {
+    line-height: 28px;
+}
+
+.layui-btn-xs {
+    line-height: 20px;
+}
+
+.layui-btn-container {
+    height: 30px;
+}
+
+.layui-layer-btn > a[class^=layui-layer-btn] {
+    line-height: 28px;
+}
+
+.layui-table-page {
+    margin-bottom: 0;
+}
+
+.version {
+    height: 24px;
+    line-height: 24px;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+}

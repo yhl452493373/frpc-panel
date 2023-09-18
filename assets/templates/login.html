@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="./static/lib/layui/css/layui.css?v=${ .version }">
+    <link rel="stylesheet" href="./static/css/layui-theme-dark.css?v=${ .version }">
+    <link rel="stylesheet" href="./static/css/color.css?v=${ .version }">
+    <link rel="stylesheet" href="./static/css/login.css?v=${ .version }">
+    <script src="./static/lib/layui/layui.js?v=${ .version }"></script>
+    <script src="./static/js/login.js?v=${ .version }"></script>
+</head>
+<body>
+<div class="login-title">
+    <a href="https://github.com/yhl452493373/frpc-panel" target="_blank">
+        <span class="title-text">${ .FrpcPanel }</span>
+        <span class="title-version">${ .version }</span>
+    </a>
+</div>
+<div class="layui-form login-container" id="loginForm">
+    <div class="layui-form-item">
+        <div class="layui-input-wrap">
+            <div class="layui-input-prefix">
+                <i class="layui-icon layui-icon-username"></i>
+            </div>
+            <input type="text" id="username" value="" lay-verify="required" placeholder="${ .Username }"
+                   lay-reqtext="${ .PleaseInputUsername }" autocomplete="off" class="layui-input" lay-affix="clear">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-wrap">
+            <div class="layui-input-prefix">
+                <i class="layui-icon layui-icon-password"></i>
+            </div>
+            <input type="password" id="password" value="" lay-verify="required" placeholder="${ .Password }"
+                   lay-reqtext="${ .PleaseInputPassword }" autocomplete="off" class="layui-input" lay-affix="eye">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <button class="layui-btn layui-btn-fluid" id="login">${ .Login }</button>
+    </div>
+</div>
+</body>
+</html>

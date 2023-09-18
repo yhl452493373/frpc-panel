@@ -1,0 +1,21 @@
+# basic options
+[common]
+# frps panel config info
+plugin_addr = "127.0.0.1"
+plugin_port = 7300
+#admin_user = "admin"
+#admin_pwd = "admin"
+# specified login state keep time
+admin_keep_time = 0
+
+# enable tls
+tls_mode = false
+#tls_cert_file = "cert.crt"
+#tls_key_file = "cert.key"
+
+# frpc dashboard info
+dashboard_addr = "127.0.0.1"
+dashboard_port = 7400
+dashboard_user = "admin"
+dashboard_pwd = "admin"
+

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>${ .FrpcPanel }</title>
+    <link rel="stylesheet" href="./static/lib/layui/css/layui.css?v=${ .version }">
+    <link rel="stylesheet" href="./static/css/layui-theme-dark.css?v=${ .version }">
+    <link rel="stylesheet" href="./static/css/index.css?v=${ .version }">
+    <link rel="stylesheet" href="./static/css/color.css?v=${ .version }">
+    <script src="./static/lib/layui/layui.js?v=${ .version }"></script>
+    <script src="./static/js/index-server-info.js?v=${ .version }"></script>
+    <script src="./static/js/index-user-list.js?v=${ .version }"></script>
+    <script src="./static/js/index-proxy-list.js?v=${ .version }"></script>
+    <script src="./static/js/index.js?v=${ .version }"></script>
+</head>
+<body>
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header layui-bg-blue">
+        <div class="layui-logo layui-bg-black">${ .FrpcPanel }</div>
+        <div class="layui-title">
+            <span id="title"></span>
+            ${ if .showExit }
+            <span class="layui-icon layui-icon-logout" id="logout"></span>
+            ${ end }
+        </div>
+    </div>
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <ul class="layui-nav layui-nav-tree" lay-filter="leftNav" id="leftNav">
+                <li class="layui-nav-item layui-this">
+                    <a href="javascript:void(0)" id="overview">Overview</a>
+                </li>
+                <li class="layui-nav-item">
+                    <a href="javascript:void(0)" id="configure">Configure</a>
+                </li>
+                <li class="layui-nav-item layui-nav-itemed" id="proxyList">
+                    <a class="" href="javascript:void(0)">Proxies</a>
+                    <dl class="layui-nav-child">
+                        <dd>
+                            <a href="javascript:void(0)" id="tcp">TCP</a>
+                        </dd>
+                        <dd>
+                            <a href="javascript:void(0)" id="udp">UDP</a>
+                        </dd>
+                        <dd>
+                            <a href="javascript:void(0)" id="http">HTTP</a>
+                        </dd>
+                        <dd>
+                            <a href="javascript:void(0)" id="https">HTTPS</a>
+                        </dd>
+                        <dd>
+                            <a href="javascript:void(0)" id="stcp">STCP</a>
+                        </dd>
+                        <dd>
+                            <a href="javascript:void(0)" id="sudp">SUDP</a>
+                        </dd>
+                    </dl>
+                </li>
+            </ul>
+        </div>
+        <div class="version">
+            <a href="https://github.com/yhl452493373/frpc-panel" target="_blank">${ .FrpcPanel } ${ .version }</a>
+        </div>
+    </div>
+    <div class="layui-body" id="content"></div>
+</div>
+
+<!--概览信息模板-->
+<script type="text/html" id="overviewTemplate">
+    <section class="overview">
+
+    </section>
+</script>
+
+<!--代理列表-代理表格模板-->
+<script type="text/html" id="proxyListTableTemplate">
+    <section class="proxy-list">
+        <table id="proxyListTable" lay-filter="proxyListTable"></table>
+    </section>
+</script>
+</body>
+</html>
