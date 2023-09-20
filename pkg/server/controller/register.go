@@ -8,7 +8,6 @@ import (
 
 type HandleController struct {
 	CommonInfo CommonInfo
-	Tokens     map[string]TokenInfo
 	Version    string
 	ConfigFile string
 	TokensFile string
@@ -40,11 +39,8 @@ func (c *HandleController) Register(rootDir string, engine *gin.Engine) {
 		group = engine.Group("/")
 	}
 	group.GET("/", c.MakeIndexFunc())
-	group.GET("/tokens", c.MakeQueryTokensFunc())
-	group.POST("/add", c.MakeAddTokenFunc())
-	group.POST("/update", c.MakeUpdateTokensFunc())
-	group.POST("/remove", c.MakeRemoveTokensFunc())
-	group.POST("/disable", c.MakeDisableTokensFunc())
-	group.POST("/enable", c.MakeEnableTokensFunc())
+	group.POST("/add", c.MakeAddProxyFunc())
+	group.POST("/update", c.MakeUpdateProxyFunc())
+	group.POST("/remove", c.MakeRemoveProxyFunc())
 	group.GET("/proxy/*serverApi", c.MakeProxyFunc())
 }

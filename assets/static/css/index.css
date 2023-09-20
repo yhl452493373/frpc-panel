@@ -55,7 +55,7 @@ section {
     display: inline-block;
 }
 
-.layui-title #logout{
+.layui-title #logout {
     display: inline-block;
     font-size: 20px;
     font-weight: bold;
@@ -154,3 +154,26 @@ section.common-info .text-row {
 section.common-info .text-row .text-col {
     flex: 1;
 }
+
+#addProxyForm {
+    padding: 0;
+}
+
+#addProxyForm .layui-tab {
+    margin: 15px 15px 0 15px;
+}
+
+#addProxyForm .layui-tab .layui-tab-content {
+    padding-bottom: 0;
+}
+
+#addProxyForm .layui-textarea {
+    min-height: 80px;
+    padding: 9px 10px;
+    resize: none;
+}
+
+#addProxyForm .layui-row .layui-form-item {
+    margin-bottom: 0;
+}
+

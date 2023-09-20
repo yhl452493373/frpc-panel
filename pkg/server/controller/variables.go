@@ -1,30 +1,22 @@
 package controller
 
 import (
-	"regexp"
+	"github.com/fatedier/frp/pkg/config"
+	"github.com/fatedier/frp/pkg/consts"
+	"reflect"
 )
 
 const (
 	Success int = iota
 	ParamError
-	UserExist
-	UserNotExist
 	SaveError
-	UserFormatError
-	TokenFormatError
-	CommentFormatError
-	PortsFormatError
-	DomainsFormatError
-	SubdomainsFormatError
 	FrpServerError
 )
 
 const (
-	TOKEN_ADD int = iota
-	TOKEN_UPDATE
-	TOKEN_REMOVE
-	TOKEN_ENABLE
-	TOKEN_DISABLE
+	ProxyAdd int = iota
+	ProxyUpdate
+	ProxyRemove
 )
 
 const (
@@ -37,18 +29,19 @@ const (
 )
 
 var (
-	userFormat        = regexp.MustCompile("^\\w+$")
-	tokenFormat       = regexp.MustCompile("^[\\w!@#$%^&*()]+$")
-	commentFormat     = regexp.MustCompile("[\\n\\t\\r]")
-	portsFormatSingle = regexp.MustCompile("^\\s*\\d{1,5}\\s*$")
-	portsFormatRange  = regexp.MustCompile("^\\s*\\d{1,5}\\s*-\\s*\\d{1,5}\\s*$")
-	domainFormat      = regexp.MustCompile("^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}$")
-	subdomainFormat   = regexp.MustCompile("^[a-zA-z0-9-]{1,20}$")
-	trimAllSpace      = regexp.MustCompile("[\\n\\t\\r\\s]")
+	proxyConfTypeMap map[string]reflect.Type
 )
 
-type Response struct {
-	Msg string `json:"msg"`
+func init() {
+	proxyConfTypeMap = make(map[string]reflect.Type)
+	proxyConfTypeMap[consts.TCPProxy] = reflect.TypeOf(config.TCPProxyConf{})
+	proxyConfTypeMap[consts.TCPMuxProxy] = reflect.TypeOf(config.TCPMuxProxyConf{})
+	proxyConfTypeMap[consts.UDPProxy] = reflect.TypeOf(config.UDPProxyConf{})
+	proxyConfTypeMap[consts.HTTPProxy] = reflect.TypeOf(config.HTTPProxyConf{})
+	proxyConfTypeMap[consts.HTTPSProxy] = reflect.TypeOf(config.HTTPSProxyConf{})
+	proxyConfTypeMap[consts.STCPProxy] = reflect.TypeOf(config.STCPProxyConf{})
+	proxyConfTypeMap[consts.XTCPProxy] = reflect.TypeOf(config.XTCPProxyConf{})
+	proxyConfTypeMap[consts.SUDPProxy] = reflect.TypeOf(config.SUDPProxyConf{})
 }
 
 type HTTPError struct {
@@ -76,27 +69,6 @@ type CommonInfo struct {
 	DashboardTls  bool
 }
 
-type Tokens struct {
-	Tokens map[string]TokenInfo `toml:"tokens"`
-}
-
-type TokenInfo struct {
-	User       string   `toml:"user" json:"user" form:"user"`
-	Token      string   `toml:"token" json:"token" form:"token"`
-	Comment    string   `toml:"comment" json:"comment" form:"comment"`
-	Ports      []any    `toml:"ports" json:"ports" from:"ports"`
-	Domains    []string `toml:"domains" json:"domains" from:"domains"`
-	Subdomains []string `toml:"subdomains" json:"subdomains" from:"subdomains"`
-	Enable     bool     `toml:"enable" json:"enable" form:"enable"`
-}
-
-type TokenResponse struct {
-	Code  int         `json:"code"`
-	Msg   string      `json:"msg"`
-	Count int         `json:"count"`
-	Data  []TokenInfo `json:"data"`
-}
-
 type OperationResponse struct {
 	Success bool   `json:"success"`
 	Code    int    `json:"code"`
@@ -106,29 +78,6 @@ type OperationResponse struct {
 type ProxyResponse struct {
 	OperationResponse
 	Data any `json:"data"`
-}
-
-type TokenSearch struct {
-	TokenInfo
-	Page  int `form:"page"`
-	Limit int `form:"limit"`
-}
-
-type TokenUpdate struct {
-	Before TokenInfo `json:"before"`
-	After  TokenInfo `json:"after"`
-}
-
-type TokenRemove struct {
-	Users []TokenInfo `json:"users"`
-}
-
-type TokenDisable struct {
-	TokenRemove
-}
-
-type TokenEnable struct {
-	TokenDisable
 }
 
 func (e *HTTPError) Error() string {

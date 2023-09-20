@@ -10,7 +10,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"sort"
 	"strconv"
 	"strings"
 )
@@ -76,62 +75,25 @@ func (c *HandleController) MakeLangFunc() func(context *gin.Context) {
 	}
 }
 
-func (c *HandleController) MakeQueryTokensFunc() func(context *gin.Context) {
+func (c *HandleController) MakeAddProxyFunc() func(context *gin.Context) {
 	return func(context *gin.Context) {
+		proxyType, exist := context.GetQuery("type")
+		if !exist {
 
-		search := TokenSearch{}
-		search.Limit = 0
-
-		err := context.BindQuery(&search)
-		if err != nil {
-			return
 		}
 
-		var tokenList []TokenInfo
-		for _, tokenInfo := range c.Tokens {
-			tokenList = append(tokenList, tokenInfo)
-		}
-		sort.Slice(tokenList, func(i, j int) bool {
-			return strings.Compare(tokenList[i].User, tokenList[j].User) < 0
-		})
+		proxy, exist := proxyConfTypeMap[proxyType]
+		if !exist {
 
-		var filtered []TokenInfo
-		for _, tokenInfo := range tokenList {
-			if filter(tokenInfo, search.TokenInfo) {
-				filtered = append(filtered, tokenInfo)
-			}
-		}
-		if filtered == nil {
-			filtered = []TokenInfo{}
 		}
 
-		count := len(filtered)
-		if search.Limit > 0 {
-			start := max((search.Page-1)*search.Limit, 0)
-			end := min(search.Page*search.Limit, len(filtered))
-			filtered = filtered[start:end]
-		}
-
-		context.JSON(http.StatusOK, &TokenResponse{
-			Code:  0,
-			Msg:   "query Tokens success",
-			Count: count,
-			Data:  filtered,
-		})
-	}
-}
-
-func (c *HandleController) MakeAddTokenFunc() func(context *gin.Context) {
-	return func(context *gin.Context) {
-		info := TokenInfo{
-			Enable: true,
-		}
 		response := OperationResponse{
 			Success: true,
 			Code:    Success,
 			Message: "user add success",
 		}
-		err := context.BindJSON(&info)
+
+		err := context.BindJSON(&proxy)
 		if err != nil {
 			response.Success = false
 			response.Code = ParamError
@@ -141,21 +103,7 @@ func (c *HandleController) MakeAddTokenFunc() func(context *gin.Context) {
 			return
 		}
 
-		result := c.verifyToken(info, TOKEN_ADD)
-
-		if !result.Success {
-			context.JSON(http.StatusOK, &result)
-			return
-		}
-
-		info.Comment = cleanString(info.Comment)
-		info.Ports = cleanPorts(info.Ports)
-		info.Domains = cleanStrings(info.Domains)
-		info.Subdomains = cleanStrings(info.Subdomains)
-
-		c.Tokens[info.User] = info
-
-		err = c.saveToken()
+		err = c.reloadFrpc()
 		if err != nil {
 			response.Success = false
 			response.Code = SaveError
@@ -169,15 +117,25 @@ func (c *HandleController) MakeAddTokenFunc() func(context *gin.Context) {
 	}
 }
 
-func (c *HandleController) MakeUpdateTokensFunc() func(context *gin.Context) {
+func (c *HandleController) MakeUpdateProxyFunc() func(context *gin.Context) {
 	return func(context *gin.Context) {
+		proxyType, exist := context.GetQuery("type")
+		if !exist {
+
+		}
+
+		proxy, exist := proxyConfTypeMap[proxyType]
+		if !exist {
+
+		}
+
 		response := OperationResponse{
 			Success: true,
 			Code:    Success,
 			Message: "user update success",
 		}
-		update := TokenUpdate{}
-		err := context.BindJSON(&update)
+
+		err := context.BindJSON(&proxy)
 		if err != nil {
 			response.Success = false
 			response.Code = ParamError
@@ -187,33 +145,7 @@ func (c *HandleController) MakeUpdateTokensFunc() func(context *gin.Context) {
 			return
 		}
 
-		before := update.Before
-		after := update.After
-
-		if before.User != after.User {
-			response.Success = false
-			response.Code = ParamError
-			response.Message = fmt.Sprintf("update failed, user should be same : before -> %v, after -> %v", before.User, after.User)
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		result := c.verifyToken(after, TOKEN_UPDATE)
-
-		if !result.Success {
-			context.JSON(http.StatusOK, &result)
-			return
-		}
-
-		after.Comment = cleanString(after.Comment)
-		after.Ports = cleanPorts(after.Ports)
-		after.Domains = cleanStrings(after.Domains)
-		after.Subdomains = cleanStrings(after.Subdomains)
-
-		c.Tokens[after.User] = after
-
-		err = c.saveToken()
+		err = c.reloadFrpc()
 		if err != nil {
 			response.Success = false
 			response.Code = SaveError
@@ -227,15 +159,25 @@ func (c *HandleController) MakeUpdateTokensFunc() func(context *gin.Context) {
 	}
 }
 
-func (c *HandleController) MakeRemoveTokensFunc() func(context *gin.Context) {
+func (c *HandleController) MakeRemoveProxyFunc() func(context *gin.Context) {
 	return func(context *gin.Context) {
+		proxyType, exist := context.GetQuery("type")
+		if !exist {
+
+		}
+
+		proxy, exist := proxyConfTypeMap[proxyType]
+		if !exist {
+
+		}
+
 		response := OperationResponse{
 			Success: true,
 			Code:    Success,
-			Message: "user remove success",
+			Message: "proxy remove success",
 		}
-		remove := TokenRemove{}
-		err := context.BindJSON(&remove)
+
+		err := context.BindJSON(&proxy)
 		if err != nil {
 			response.Success = false
 			response.Code = ParamError
@@ -245,121 +187,12 @@ func (c *HandleController) MakeRemoveTokensFunc() func(context *gin.Context) {
 			return
 		}
 
-		for _, user := range remove.Users {
-			result := c.verifyToken(user, TOKEN_REMOVE)
-
-			if !result.Success {
-				context.JSON(http.StatusOK, &result)
-				return
-			}
-		}
-
-		for _, user := range remove.Users {
-			delete(c.Tokens, user.User)
-		}
-
-		err = c.saveToken()
+		err = c.reloadFrpc()
 		if err != nil {
 			response.Success = false
 			response.Code = SaveError
 			response.Message = fmt.Sprintf("user update failed, error : %v", err)
 			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		context.JSON(http.StatusOK, &response)
-	}
-}
-
-func (c *HandleController) MakeDisableTokensFunc() func(context *gin.Context) {
-	return func(context *gin.Context) {
-		response := OperationResponse{
-			Success: true,
-			Code:    Success,
-			Message: "remove success",
-		}
-		disable := TokenDisable{}
-		err := context.BindJSON(&disable)
-		if err != nil {
-			response.Success = false
-			response.Code = ParamError
-			response.Message = fmt.Sprintf("disable failed, param error : %v", err)
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		for _, user := range disable.Users {
-			result := c.verifyToken(user, TOKEN_DISABLE)
-
-			if !result.Success {
-				context.JSON(http.StatusOK, &result)
-				return
-			}
-		}
-
-		for _, user := range disable.Users {
-			token := c.Tokens[user.User]
-			token.Enable = false
-			c.Tokens[user.User] = token
-		}
-
-		err = c.saveToken()
-
-		if err != nil {
-			response.Success = false
-			response.Code = SaveError
-			response.Message = fmt.Sprintf("disable failed, error : %v", err)
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		context.JSON(http.StatusOK, &response)
-	}
-}
-
-func (c *HandleController) MakeEnableTokensFunc() func(context *gin.Context) {
-	return func(context *gin.Context) {
-		response := OperationResponse{
-			Success: true,
-			Code:    Success,
-			Message: "remove success",
-		}
-		enable := TokenEnable{}
-		err := context.BindJSON(&enable)
-		if err != nil {
-			response.Success = false
-			response.Code = ParamError
-			response.Message = fmt.Sprintf("enable failed, param error : %v", err)
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		for _, user := range enable.Users {
-			result := c.verifyToken(user, TOKEN_ENABLE)
-
-			if !result.Success {
-				context.JSON(http.StatusOK, &result)
-				return
-			}
-		}
-
-		for _, user := range enable.Users {
-			token := c.Tokens[user.User]
-			token.Enable = true
-			c.Tokens[user.User] = token
-		}
-
-		err = c.saveToken()
-
-		if err != nil {
-			log.Printf("enable failed, error : %v", err)
-			response.Success = false
-			response.Code = SaveError
-			response.Message = "enable failed"
 			context.JSON(http.StatusOK, &response)
 			return
 		}

@@ -143,11 +143,102 @@
     </section>
 </script>
 
+<!--用户列表-添加用户表单模板-->
+<script type="text/html" id="addProxyTemplate">
+    <form class="layui-form" id="addProxyForm" lay-filter="addProxyForm">
+        <div class="layui-tab layui-tab-brief">
+            <ul class="layui-tab-title">
+                <li class="layui-this">Basic</li>
+                <li>Extra</li>
+            </ul>
+            <div class="layui-tab-content">
+                <div class="layui-tab-item layui-show">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">ProxyType</label>
+                        <div class="layui-input-block">
+                            <select name="type" id="type">
+                                <option value="http">HTTP</option>
+                                <option value="https">HTTPS</option>
+                                <option value="tcp">TCP</option>
+                                <option value="udp">UDP</option>
+                                <option value="stcp">STCP</option>
+                                <option value="sudp">SUDP</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">LocalIp</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="local_ip" placeholder="LocalIp"
+                                   autocomplete="off" class="layui-input"/>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">LocalPort</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="local_port" placeholder="LocalPort"
+                                   autocomplete="off" class="layui-input"/>
+                        </div>
+                    </div>
+                    <div class="layui-form-item layui-hide http https">
+                        <label class="layui-form-label">CustomizeDomains</label>
+                        <div class="layui-input-block">
+                            <textarea name="custom_domains" placeholder="CustomDomains" autocomplete="off"
+                                      class="layui-textarea"></textarea>
+                        </div>
+                    </div>
+                    <div class="layui-form-item layui-form-text layui-hide http https">
+                        <label class="layui-form-label">Subdomain</label>
+                        <div class="layui-input-block">
+                            <textarea name="subdomain" placeholder="Subdomain" autocomplete="off"
+                                      class="layui-textarea"></textarea>
+                        </div>
+                    </div>
+                    <div class="layui-form-item layui-hide tcp udp">
+                        <label class="layui-form-label">RemotePort</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="remote_port" placeholder="RemotePort"
+                                   autocomplete="off" class="layui-input"/>
+                        </div>
+                    </div>
+                    <div class="layui-row">
+                        <div class="layui-col-xs6">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">UseEncryption</label>
+                                <div class="layui-input-block">
+                                    <input type="checkbox" name="use_encryption" value="true" title="ON">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-xs6">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">UseCompression</label>
+                                <div class="layui-input-block">
+                                    <input type="checkbox" name="use_compression" value="true" title="ON">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-tab-item">内容-2</div>
+            </div>
+        </div>
+    </form>
+</script>
+
 <!--代理列表-代理表格模板-->
 <script type="text/html" id="proxyListTableTemplate">
     <section class="proxy-list">
         <table id="proxyListTable" lay-filter="proxyListTable"></table>
     </section>
+</script>
+
+<!--代理列表-表格工具条按钮模板-->
+<script type="text/html" id="proxyListToolbarTemplate">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="add">NewProxy</button>
+        <button class="layui-btn layui-btn-sm" lay-event="remove">RemoveProxy</button>
+    </div>
 </script>
 
 <!--代理列表-操作按钮模板-->

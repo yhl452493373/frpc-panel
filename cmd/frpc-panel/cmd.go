@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"frps-panel/pkg/server"
 	"frps-panel/pkg/server/controller"
 	"github.com/BurntSushi/toml"
@@ -72,19 +71,9 @@ func Execute() {
 
 func parseConfigFile(configFile, tokensFile string) (controller.HandleController, server.TLS, error) {
 	var common controller.Common
-	var tokens controller.Tokens
 	_, err := toml.DecodeFile(configFile, &common)
 	if err != nil {
 		log.Fatalf("decode config file %v error: %v", configFile, err)
-	}
-
-	_, err = toml.DecodeFile(tokensFile, &tokens)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			tokens = controller.Tokens{Tokens: make(map[string]controller.TokenInfo)}
-		} else {
-			log.Fatalf("decode token file %v error: %v", tokensFile, err)
-		}
 	}
 
 	common.Common.DashboardTls = strings.HasPrefix("https://", strings.ToLower(common.Common.DashboardAddr))
@@ -108,7 +97,6 @@ func parseConfigFile(configFile, tokensFile string) (controller.HandleController
 
 	return controller.HandleController{
 		CommonInfo: common.Common,
-		Tokens:     tokens.Tokens,
 		Version:    version,
 		ConfigFile: configFile,
 		TokensFile: tokensFile,

@@ -57,6 +57,8 @@ var loadProxyInfo = (function ($) {
             text: {none: i18n['EmptyData']},
             cols: [cols],
             page: navigator.language.indexOf("zh") !== -1,
+            toolbar: '#proxyListToolbarTemplate',
+            defaultToolbar: false,
             data: dataList,
             initSort: {
                 field: 'name',
@@ -75,6 +77,21 @@ var loadProxyInfo = (function ($) {
      * bind event of {{@link layui.form}}
      */
     function bindFormEvent() {
+        layui.table.on('toolbar(proxyListTable)', function (obj) {
+            var id = obj.config.id;
+            var checkStatus = layui.table.checkStatus(id);
+            var data = checkStatus.data;
+
+            switch (obj.event) {
+                case 'add':
+                    addPopup();
+                    break
+                case 'remove':
+                    // batchRemovePopup(data);
+                    break
+            }
+        });
+
         layui.table.on('tool(proxyListTable)', function (obj) {
             var data = obj.data;
 
@@ -86,6 +103,116 @@ var loadProxyInfo = (function ($) {
                     // removePopup(data);
                     break;
             }
+        });
+    }
+
+    /**
+     * add proxy popup
+     */
+    function addPopup() {
+        layui.layer.open({
+            type: 1,
+            title: 'NewProxy',
+            area: ['500px'],
+            content: layui.laytpl(document.getElementById('addProxyTemplate').innerHTML).render(),
+            btn: ['Confirm', 'Cancel'],
+            btn1: function (index) {
+                if (layui.form.validate('#addProxyTemplate')) {
+                    var formData = layui.form.val('addProxyTemplate');
+                    add(formData, index);
+                }
+            },
+            btn2: function (index) {
+                layui.layer.close(index);
+            },
+            success: function (layero, index, that) {
+                layero.find('.layui-layer-content').css('overflow', 'visible');
+                layui.form.render(null, 'addProxyForm');
+            }
+        });
+    }
+
+    /**
+     * add proxy action
+     * @param data {{user:string, token:string, comment:string, enable:boolean, ports:[string|number], domains:[string], subdomains:[string]}} user data
+     * @param index popup index
+     */
+    function add(data, index) {
+        var loading = layui.layer.load();
+        $.ajax({
+            url: '/add',
+            type: 'post',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (result) {
+                // if (result.success) {
+                //     reloadTable();
+                //     layui.layer.close(index);
+                //     layui.layer.msg(i18n['OperateSuccess'], function (index) {
+                //         layui.layer.close(index);
+                //     });
+                // } else {
+                //     errorMsg(result);
+                // }
+            },
+            complete: function () {
+                layui.layer.close(loading);
+            }
+        });
+    }
+
+    /**
+     * update proxy action
+     * @param before {{user:string, token:string, comment:string, enable:boolean, ports:[string|number], domains:[string], subdomains:[string]}} data before update
+     * @param after {{user:string, token:string, comment:string, enable:boolean, ports:[string|number], domains:[string], subdomains:[string]}} data after update
+     */
+    function update(before, after) {
+        before.ports.forEach(function (port, index) {
+            if (/^\d+$/.test(String(port))) {
+                before.ports[index] = parseInt(String(port));
+            }
+        });
+        after.ports.forEach(function (port, index) {
+            if (/^\d+$/.test(String(port)) && typeof port === "string") {
+                after.ports[index] = parseInt(String(port));
+            }
+        });
+        var loading = layui.layer.load();
+        $.ajax({
+            url: '/update',
+            type: 'post',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                before: before,
+                after: after,
+            }),
+            success: function (result) {
+                if (result.success) {
+                    layui.layer.msg(i18n['OperateSuccess']);
+                } else {
+                    errorMsg(result);
+                }
+            },
+            complete: function () {
+                layui.layer.close(loading);
+            }
+        });
+    }
+
+    /**
+     * batch remove proxy popup
+     * @param data {[{user:string, token:string, comment:string, enable:boolean, ports:[string|number], domains:[string], subdomains:[string]}]} user data list
+     */
+    function batchRemovePopup(data) {
+        if (data.length === 0) {
+            layui.layer.msg(i18n['ShouldCheckUser']);
+            return;
+        }
+        layui.layer.confirm(i18n['ConfirmRemoveUser'], {
+            title: i18n['OperationConfirm'],
+            btn: [i18n['Confirm'], i18n['Cancel']]
+        }, function (index) {
+            operate(apiType.Remove, data, index);
         });
     }
 
