@@ -1,24 +1,21 @@
-var loadProxyInfo = (function ($) {
+var loadOverview = (function ($) {
     var i18n = {};
 
     /**
      * get proxy info
      * @param lang {{}} language json
      * @param title page title
-     * @param proxyType proxy type
      */
-    function loadProxyInfo(lang, title, proxyType) {
+    function loadOverview(lang, title) {
         i18n = lang;
         $("#title").text(title);
         $('#content').empty();
         var loading = layui.layer.load();
 
-        $.getJSON('/proxy/api/config', {
-            type: proxyType
-        }).done(function (result) {
+        $.getJSON('/proxy/api/status').done(function (result) {
             if (result.success) {
-                $('#content').html($('#proxyListTableTemplate').html());
-                renderProxyListTable(result.data, proxyType);
+                $('#content').html($('#overviewTableTemplate').html());
+                renderOverviewTable(JSON.parse(result.data));
             } else {
                 layui.layer.msg(result.message);
             }
@@ -32,27 +29,32 @@ var loadProxyInfo = (function ($) {
      * @param data {Map<string,Map<string,string>>} proxy data
      * @param proxyType proxy type
      */
-    function renderProxyListTable(data, proxyType) {
+    function renderOverviewTable(data, proxyType) {
         var dataList = [];
-        for (var key in data) {
-            var temp = data[key];
-            temp.name = key;
-            temp.local_ip = temp.local_ip || '-';
-            temp.local_port = temp.local_port || '-';
-            dataList.push(temp);
+        for (var type in data) {
+            var temp = data[type];
+            dataList = dataList.concat(temp);
         }
 
         var $section = $('#content > section');
         var cols = [
             {field: 'name', title: 'Name', sort: true},
-            {field: 'type', title: 'Type', sort: true},
-            {field: 'local_ip', title: 'Local Ip', sort: true},
-            {field: 'local_port', title: 'Local Port', sort: true},
-            {title: 'Operation', width: 150, toolbar: '#proxyListOperationTemplate'}
+            {field: 'type', title: 'Type', width: 100, sort: true},
+            {
+                field: 'local_addr',
+                title: 'Local Address',
+                templet: '<span>{{= d.local_addr || "-" }}</span>',
+                width: 220,
+                sort: true
+            },
+            {field: 'plugin', title: 'plugin', templet: '<span>{{= d.plugin || "-" }}</span>', sort: true},
+            {field: 'remote_addr', title: 'Remote Address', sort: true},
+            {field: 'status', title: 'Status', width: 100, sort: true},
+            {field: 'err', title: 'Info',templet: '<span>{{= d.err || "-" }}</span>', width: 200}
         ];
 
-        var proxyListTable = layui.table.render({
-            elem: '#proxyListTable',
+        var overviewTable = layui.table.render({
+            elem: '#overviewTable',
             height: $section.height(),
             text: {none: i18n['EmptyData']},
             cols: [cols],
@@ -65,7 +67,7 @@ var loadProxyInfo = (function ($) {
         });
 
         window.onresize = function () {
-            proxyListTable.resize();
+            overviewTable.resize();
         }
 
         bindFormEvent();
@@ -89,5 +91,5 @@ var loadProxyInfo = (function ($) {
         });
     }
 
-    return loadProxyInfo;
+    return loadOverview;
 })(layui.$);

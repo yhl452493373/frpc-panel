@@ -6,5 +6,6 @@
   "Please input username": "Please input username",
   "Please input password": "Please input password",
   "Login success": "Login success",
-  "Username or password incorrect": "Username or password incorrect"
+  "Username or password incorrect": "Username or password incorrect",
+  "Empty data": "Empty data"
 }

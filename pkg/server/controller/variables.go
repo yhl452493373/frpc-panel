@@ -105,7 +105,7 @@ type OperationResponse struct {
 
 type ProxyResponse struct {
 	OperationResponse
-	Data string `json:"data"`
+	Data any `json:"data"`
 }
 
 type TokenSearch struct {

@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="./static/css/index.css?v=${ .version }">
     <link rel="stylesheet" href="./static/css/color.css?v=${ .version }">
     <script src="./static/lib/layui/layui.js?v=${ .version }"></script>
-    <script src="./static/js/index-server-info.js?v=${ .version }"></script>
-    <script src="./static/js/index-user-list.js?v=${ .version }"></script>
+    <script src="./static/js/index-overview.js?v=${ .version }"></script>
+    <script src="./static/js/index-configure.js?v=${ .version }"></script>
     <script src="./static/js/index-proxy-list.js?v=${ .version }"></script>
     <script src="./static/js/index.js?v=${ .version }"></script>
 </head>
@@ -29,12 +29,12 @@
                 <li class="layui-nav-item layui-this">
                     <a href="javascript:void(0)" id="overview">Overview</a>
                 </li>
-                <li class="layui-nav-item">
-                    <a href="javascript:void(0)" id="configure">Configure</a>
-                </li>
-                <li class="layui-nav-item layui-nav-itemed" id="proxyList">
-                    <a class="" href="javascript:void(0)">Proxies</a>
+                <li class="layui-nav-item layui-nav-itemed" id="configure">
+                    <a class="" href="javascript:void(0)">Configure</a>
                     <dl class="layui-nav-child">
+                        <dd>
+                            <a href="javascript:void(0)" id="common">Common</a>
+                        </dd>
                         <dd>
                             <a href="javascript:void(0)" id="tcp">TCP</a>
                         </dd>
@@ -64,10 +64,82 @@
     <div class="layui-body" id="content"></div>
 </div>
 
-<!--概览信息模板-->
-<script type="text/html" id="overviewTemplate">
+<!--代理列表-代理表格模板-->
+<script type="text/html" id="overviewTableTemplate">
     <section class="overview">
+        <table id="overviewTable" lay-filter="overviewTable"></table>
+    </section>
+</script>
 
+<!--配置信息模板-->
+<script type="text/html" id="commonTemplate">
+    <section class="common-info">
+        <div class="text-info">
+            <div class="text-row">
+                <div class="text-col">server_addr</div>
+                <div class="text-col">{{= d.server_addr }}</div>
+            </div>
+            <div class="text-row">
+                <div class="text-col">server_port</div>
+                <div class="text-col">{{= d.server_port }}</div>
+            </div>
+            <div class="text-row">
+                <div class="text-col">protocol</div>
+                <div class="text-col">{{= d.protocol }}</div>
+            </div>
+            <div class="text-row">
+                <div class="text-col">tcp_mux</div>
+                <div class="text-col">{{= d.tcp_mux }}</div>
+            </div>
+            <div class="text-row">
+                <div class="text-col">user</div>
+                <div class="text-col">{{= d.user }}</div>
+            </div>
+            <div class="text-row">
+                <div class="text-col">meta_token</div>
+                <div class="text-col">{{= d.metas.token }}</div>
+            </div>
+            <div class="text-row">
+                <div class="text-col">admin_addr</div>
+                <div class="text-col">{{= d.admin_addr }}</div>
+            </div>
+            <div class="text-row">
+                <div class="text-col">admin_port</div>
+                <div class="text-col">{{= d.admin_port }}</div>
+            </div>
+            <div class="text-row">
+                <div class="text-col">admin_pwd</div>
+                <div class="text-col">{{= d.admin_pwd }}</div>
+            </div>
+            <div class="text-row">
+                <div class="text-col">admin_user</div>
+                <div class="text-col">{{= d.admin_user }}</div>
+            </div>
+            <div class="text-row">
+                <div class="text-col">heartbeat_interval</div>
+                <div class="text-col">{{= d.heartbeat_interval }}</div>
+            </div>
+            <div class="text-row">
+                <div class="text-col">heartbeat_timeout</div>
+                <div class="text-col">{{= d.heartbeat_timeout }}</div>
+            </div>
+            <div class="text-row">
+                <div class="text-col">tls_enable</div>
+                <div class="text-col">{{= d.tls_enable }}</div>
+            </div>
+            <div class="text-row">
+                <div class="text-col">tls_key_file</div>
+                <div class="text-col">{{= d.tls_key_file }}</div>
+            </div>
+            <div class="text-row">
+                <div class="text-col">tls_cert_file</div>
+                <div class="text-col">{{= d.tls_cert_file }}</div>
+            </div>
+            <div class="text-row">
+                <div class="text-col">tls_trusted_ca_file</div>
+                <div class="text-col">{{= d.tls_trusted_ca_file }}</div>
+            </div>
+        </div>
     </section>
 </script>
 
@@ -76,6 +148,14 @@
     <section class="proxy-list">
         <table id="proxyListTable" lay-filter="proxyListTable"></table>
     </section>
+</script>
+
+<!--代理列表-操作按钮模板-->
+<script type="text/html" id="proxyListOperationTemplate">
+    <div class="layui-clear-space">
+        <a class="layui-btn layui-btn-xs" lay-event="update">Update</a>
+        <a class="layui-btn layui-btn-xs" lay-event="remove">Remove</a>
+    </div>
 </script>
 </body>
 </html>

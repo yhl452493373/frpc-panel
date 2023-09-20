@@ -132,3 +132,25 @@ section {
     text-align: center;
     font-size: 12px;
 }
+
+section.common-info {
+    display: flex;
+}
+
+section.common-info .text-info {
+    flex: 1;
+}
+
+section.common-info .text-info {
+    padding: 0 20px;
+}
+
+section.common-info .text-row {
+    display: flex;
+    font-size: 14px;
+    line-height: 40px;
+}
+
+section.common-info .text-row .text-col {
+    flex: 1;
+}

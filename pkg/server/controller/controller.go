@@ -3,8 +3,10 @@ package controller
 import (
 	"crypto/tls"
 	"fmt"
+	"github.com/fatedier/frp/pkg/config"
 	ginI18n "github.com/gin-contrib/i18n"
 	"github.com/gin-gonic/gin"
+	"github.com/vaughan0/go-ini"
 	"io"
 	"log"
 	"net/http"
@@ -68,7 +70,9 @@ func (c *HandleController) MakeIndexFunc() func(context *gin.Context) {
 
 func (c *HandleController) MakeLangFunc() func(context *gin.Context) {
 	return func(context *gin.Context) {
-		context.JSON(http.StatusOK, gin.H{})
+		context.JSON(http.StatusOK, gin.H{
+			"EmptyData": ginI18n.MustGetMessage(context, "Empty data"),
+		})
 	}
 }
 
@@ -386,7 +390,8 @@ func (c *HandleController) MakeProxyFunc() func(context *gin.Context) {
 		res := ProxyResponse{}
 		host := c.CommonInfo.DashboardAddr
 		port := c.CommonInfo.DashboardPort
-		requestUrl := protocol + host + ":" + strconv.Itoa(port) + context.Param("serverApi")
+		serverApi := context.Param("serverApi")
+		requestUrl := protocol + host + ":" + strconv.Itoa(port) + serverApi
 		request, _ := http.NewRequest("GET", requestUrl, nil)
 		username := c.CommonInfo.DashboardUser
 		password := c.CommonInfo.DashboardPwd
@@ -416,13 +421,62 @@ func (c *HandleController) MakeProxyFunc() func(context *gin.Context) {
 			if res.Code == http.StatusOK {
 				res.Success = true
 				res.Data = string(body)
-				res.Message = "Proxy to " + requestUrl + " success"
+				res.Message = fmt.Sprintf("Proxy to %s success", requestUrl)
 			} else {
 				res.Success = false
-				res.Message = "Proxy to " + requestUrl + " error: " + string(body)
+				if res.Code == http.StatusNotFound {
+					res.Message = fmt.Sprintf("Proxy to %s error: url not found", requestUrl)
+				} else {
+					res.Message = fmt.Sprintf("Proxy to %s error: %s", requestUrl, string(body))
+				}
 			}
 		}
 		log.Printf(res.Message)
+
+		if serverApi == "/api/config" {
+			proxyType, _ := context.GetQuery("type")
+			content := fmt.Sprintf("%s", res.Data)
+			configure, err := parseConfigure(content, trimString(proxyType))
+
+			if err != nil {
+				res.Success = false
+				res.Message = err.Error()
+			} else {
+				res.Data = configure
+			}
+		}
+
 		context.JSON(http.StatusOK, &res)
+	}
+}
+
+func parseConfigure(content, proxyType string) (interface{}, error) {
+
+	if proxyType == "none" {
+		common, err := config.UnmarshalClientConfFromIni(content)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return common, nil
+	}
+
+	cfg, err := ini.Load(strings.NewReader(content))
+	proxyList := make(map[string]ini.Section)
+	for name, section := range cfg {
+		if name == "common" {
+			continue
+		}
+		if proxyType != "" && strings.ToLower(section["type"]) != strings.ToLower(proxyType) {
+			continue
+		}
+		proxyList[name] = section
+	}
+
+	if err != nil {
+		return nil, err
+	} else {
+		return proxyList, nil
 	}
 }
