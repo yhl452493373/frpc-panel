@@ -1,7 +1,7 @@
 # basic options
 [common]
 # frps panel config info
-plugin_addr = "127.0.0.1"
+plugin_addr = "0.0.0.0"
 plugin_port = 7300
 #admin_user = "admin"
 #admin_pwd = "admin"

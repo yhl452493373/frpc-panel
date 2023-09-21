@@ -70,13 +70,15 @@ var loadProxyInfo = (function ($) {
             proxyListTable.resize();
         }
 
-        bindFormEvent();
+        bindFormEvent(proxyType);
     }
 
     /**
      * bind event of {{@link layui.form}}
+     *
+     * @param type proxy type
      */
-    function bindFormEvent() {
+    function bindFormEvent(type) {
         layui.table.on('toolbar(proxyListTable)', function (obj) {
             var id = obj.config.id;
             var checkStatus = layui.table.checkStatus(id);
@@ -84,7 +86,7 @@ var loadProxyInfo = (function ($) {
 
             switch (obj.event) {
                 case 'add':
-                    addPopup();
+                    addPopup(type);
                     break
                 case 'remove':
                     // batchRemovePopup(data);
@@ -108,13 +110,17 @@ var loadProxyInfo = (function ($) {
 
     /**
      * add proxy popup
+     * @param type proxy type
      */
-    function addPopup() {
+    function addPopup(type) {
         layui.layer.open({
             type: 1,
-            title: 'NewProxy',
-            area: ['500px'],
-            content: layui.laytpl(document.getElementById('addProxyTemplate').innerHTML).render(),
+            title: false,
+            skin: 'add-popup',
+            area: ['500px', '400px'],
+            content: layui.laytpl(document.getElementById('addProxyTemplate').innerHTML).render({
+                type: type
+            }),
             btn: ['Confirm', 'Cancel'],
             btn1: function (index) {
                 if (layui.form.validate('#addProxyTemplate')) {
@@ -126,7 +132,6 @@ var loadProxyInfo = (function ($) {
                 layui.layer.close(index);
             },
             success: function (layero, index, that) {
-                layero.find('.layui-layer-content').css('overflow', 'visible');
                 layui.form.render(null, 'addProxyForm');
             }
         });

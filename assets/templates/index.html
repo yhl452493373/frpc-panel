@@ -156,14 +156,8 @@
                     <div class="layui-form-item">
                         <label class="layui-form-label">ProxyType</label>
                         <div class="layui-input-block">
-                            <select name="type" id="type">
-                                <option value="http">HTTP</option>
-                                <option value="https">HTTPS</option>
-                                <option value="tcp">TCP</option>
-                                <option value="udp">UDP</option>
-                                <option value="stcp">STCP</option>
-                                <option value="sudp">SUDP</option>
-                            </select>
+                            <input type="text" name="type" value="{{= d.type.toUpperCase() }}" readonly
+                                   class="layui-input">
                         </div>
                     </div>
                     <div class="layui-form-item">
@@ -180,27 +174,31 @@
                                    autocomplete="off" class="layui-input"/>
                         </div>
                     </div>
-                    <div class="layui-form-item layui-hide http https">
+                    {{# if (d.type === 'http' || d.type === 'https') { }}
+                    <div class="layui-form-item http https">
                         <label class="layui-form-label">CustomizeDomains</label>
                         <div class="layui-input-block">
                             <textarea name="custom_domains" placeholder="CustomDomains" autocomplete="off"
                                       class="layui-textarea"></textarea>
                         </div>
                     </div>
-                    <div class="layui-form-item layui-form-text layui-hide http https">
+                    <div class="layui-form-item layui-form-text http https">
                         <label class="layui-form-label">Subdomain</label>
                         <div class="layui-input-block">
                             <textarea name="subdomain" placeholder="Subdomain" autocomplete="off"
                                       class="layui-textarea"></textarea>
                         </div>
                     </div>
-                    <div class="layui-form-item layui-hide tcp udp">
+                    {{# } }}
+                    {{# if (d.type === 'tcp' || d.type === 'udp') { }}
+                    <div class="layui-form-item tcp udp">
                         <label class="layui-form-label">RemotePort</label>
                         <div class="layui-input-block">
                             <input type="text" name="remote_port" placeholder="RemotePort"
                                    autocomplete="off" class="layui-input"/>
                         </div>
                     </div>
+                    {{# } }}
                     <div class="layui-row">
                         <div class="layui-col-xs6">
                             <div class="layui-form-item">
