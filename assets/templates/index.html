@@ -154,6 +154,13 @@
             <div class="layui-tab-content">
                 <div class="layui-tab-item layui-show">
                     <div class="layui-form-item">
+                        <label class="layui-form-label">ProxyName</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="name" placeholder="ProxyName" autocomplete="off"
+                                   class="layui-input"/>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
                         <label class="layui-form-label">ProxyType</label>
                         <div class="layui-input-block">
                             <input type="text" name="type" value="{{= d.type.toUpperCase() }}" readonly
@@ -163,15 +170,15 @@
                     <div class="layui-form-item">
                         <label class="layui-form-label">LocalIp</label>
                         <div class="layui-input-block">
-                            <input type="text" name="local_ip" placeholder="LocalIp"
-                                   autocomplete="off" class="layui-input"/>
+                            <input type="text" name="local_ip" placeholder="LocalIp" autocomplete="off"
+                                   class="layui-input"/>
                         </div>
                     </div>
                     <div class="layui-form-item">
                         <label class="layui-form-label">LocalPort</label>
                         <div class="layui-input-block">
-                            <input type="text" name="local_port" placeholder="LocalPort"
-                                   autocomplete="off" class="layui-input"/>
+                            <input type="text" name="local_port" placeholder="LocalPort" autocomplete="off"
+                                   class="layui-input"/>
                         </div>
                     </div>
                     {{# if (d.type === 'http' || d.type === 'https') { }}
@@ -194,8 +201,8 @@
                     <div class="layui-form-item tcp udp">
                         <label class="layui-form-label">RemotePort</label>
                         <div class="layui-input-block">
-                            <input type="text" name="remote_port" placeholder="RemotePort"
-                                   autocomplete="off" class="layui-input"/>
+                            <input type="text" name="remote_port" placeholder="RemotePort" autocomplete="off"
+                                   class="layui-input"/>
                         </div>
                     </div>
                     {{# } }}
@@ -204,7 +211,7 @@
                             <div class="layui-form-item">
                                 <label class="layui-form-label">UseEncryption</label>
                                 <div class="layui-input-block">
-                                    <input type="checkbox" name="use_encryption" value="true" title="ON">
+                                    <input type="checkbox" name="use_encryption" value="true" title="YES">
                                 </div>
                             </div>
                         </div>
@@ -212,16 +219,53 @@
                             <div class="layui-form-item">
                                 <label class="layui-form-label">UseCompression</label>
                                 <div class="layui-input-block">
-                                    <input type="checkbox" name="use_compression" value="true" title="ON">
+                                    <input type="checkbox" name="use_compression" value="true" title="YES">
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="layui-tab-item">内容-2</div>
+                <div class="layui-tab-item extra-param-tab-item">
+                    {{# layui.each(d.extraData, function(index, extra){ }}
+                    <div class="layui-form-item">
+                        <div class="layui-input-inline">
+                            <input type="text" name="paramName" value="{{= extra.name}}" class="layui-input"
+                                   placeholder="paramName">
+                        </div>
+                        <div class="layui-form-mid">=</div>
+                        <div class="layui-input-inline">
+                            <input type="text" name="paramValue" value="{{= extra.value }}" class="layui-input"
+                                   lay-filter="subtraction" lay-affix="subtraction" placeholder="paramValue">
+                        </div>
+                    </div>
+                    {{# }); }}
+                    <div class="layui-form-item">
+                        <div class="layui-input-inline">
+                            <input type="text" name="paramName" class="layui-input" placeholder="paramName">
+                        </div>
+                        <div class="layui-form-mid">=</div>
+                        <div class="layui-input-inline">
+                            <input type="text" name="paramValue" class="layui-input" lay-filter="addition"
+                                   lay-affix="addition" placeholder="paramValue">
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </form>
+</script>
+
+<script type="text/html" id="extraParamAddedTemplate">
+    <div class="layui-form-item">
+        <div class="layui-input-inline">
+            <input type="text" name="paramName" value="{{= d.name}}" class="layui-input" placeholder="paramName">
+        </div>
+        <div class="layui-form-mid">=</div>
+        <div class="layui-input-inline">
+            <input type="text" name="paramValue" value="{{= d.value }}" class="layui-input"
+                   lay-filter="subtraction" lay-affix="subtraction" placeholder="paramValue">
+        </div>
+    </div>
 </script>
 
 <!--代理列表-代理表格模板-->

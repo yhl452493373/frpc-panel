@@ -144,12 +144,12 @@ section.common-info .text-row .text-col {
     margin: 0 5px !important;
 }
 
-.add-popup .layui-layer-setwin {
+.proxy-popup .layui-layer-setwin {
     top: 0;
     right: 0;
 }
 
-.add-popup .layui-layer-close2 {
+.proxy-popup .layui-layer-close2 {
     padding: 0;
     border: none;
     right: 0;
@@ -163,11 +163,11 @@ section.common-info .text-row .text-col {
     text-align: center;
 }
 
-.add-popup .layui-layer-close2:hover {
+.proxy-popup .layui-layer-close2:hover {
     background: none;
 }
 
-.add-popup form {
+.proxy-popup form {
     padding: 0;
     position: absolute;
     left: 0;
@@ -178,13 +178,14 @@ section.common-info .text-row .text-col {
     flex-direction: column;
 }
 
-.add-popup .layui-tab {
+.proxy-popup .layui-tab {
     flex: 1;
     margin: 0;
 }
 
-.add-popup .layui-tab .layui-tab-content {
-    padding: 15px 8px 0 8px;
+.proxy-popup .layui-tab .layui-tab-content {
+    padding: 0 8px;
+    margin: 8px 0;
     position: absolute;
     top: 41px;
     bottom: 0;
@@ -193,18 +194,35 @@ section.common-info .text-row .text-col {
     overflow: auto;
 }
 
-.add-popup .layui-textarea {
+.proxy-popup .layui-textarea {
     min-height: 80px;
     padding: 9px 10px;
     resize: none;
 }
 
-.add-popup .layui-form-select dl {
+.proxy-popup .layui-form-select dl {
     max-height: 156px;
 }
 
-.add-popup .layui-row .layui-form-item {
+.proxy-popup .layui-row .layui-form-item {
     margin-bottom: 0;
+}
+
+.proxy-popup .extra-param-tab-item .layui-form-item {
+    display: flex;
+}
+
+.proxy-popup .extra-param-tab-item .layui-form-item:last-child {
+    margin-bottom: 0;
+}
+
+.proxy-popup .extra-param-tab-item .layui-form-item .layui-input-inline:nth-child(1) {
+    width: 150px;
+}
+
+.proxy-popup .extra-param-tab-item .layui-form-item .layui-input-inline:nth-child(3) {
+    flex: 1;
+    margin-right: 0;
 }
 
 #searchForm input {

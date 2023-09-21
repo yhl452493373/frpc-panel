@@ -1,5 +1,7 @@
 var loadProxyInfo = (function ($) {
     var i18n = {};
+    //param names in Basic tab
+    var basicParamNames = ['name', 'type', 'local_ip', 'local_port', 'custom_domains', 'subdomain', 'remote_port', 'use_encryption', 'use_compression'];
 
     /**
      * get proxy info
@@ -84,9 +86,13 @@ var loadProxyInfo = (function ($) {
             var checkStatus = layui.table.checkStatus(id);
             var data = checkStatus.data;
 
+            for (var key in data) {
+                data[key] = data[key] === '-' ? '' : data[key];
+            }
+
             switch (obj.event) {
                 case 'add':
-                    addPopup(type);
+                    proxyPopup(type, null);
                     break
                 case 'remove':
                     // batchRemovePopup(data);
@@ -97,10 +103,14 @@ var loadProxyInfo = (function ($) {
         layui.table.on('tool(proxyListTable)', function (obj) {
             var data = obj.data;
 
+            for (var key in data) {
+                data[key] = data[key] === '-' ? '' : data[key];
+            }
+
             switch (obj.event) {
                 case 'update':
+                    proxyPopup(type, data);
                     break;
-                // updatePopup(data);
                 case 'remove':
                     // removePopup(data);
                     break;
@@ -111,16 +121,37 @@ var loadProxyInfo = (function ($) {
     /**
      * add proxy popup
      * @param type proxy type
+     * @param data {Map<string,object>} proxy data
      */
-    function addPopup(type) {
+    function proxyPopup(type, data) {
+        var basicData = {};
+        var extraData = [];
+        if (data != null) {
+            var tempData = $.extend(true, {}, data);
+            basicParamNames.forEach(function (basicName) {
+                if (data.hasOwnProperty(basicName)) {
+                    basicData[basicName] = tempData[basicName];
+                    delete tempData[basicName];
+                }
+            });
+            for (var key in tempData) {
+                extraData.push({
+                    name: key,
+                    value: tempData[key]
+                });
+            }
+        }
+        var html = document.getElementById('addProxyTemplate').innerHTML;
+        var content = layui.laytpl(html).render({
+            type: type,
+            extraData: extraData
+        });
         layui.layer.open({
             type: 1,
             title: false,
-            skin: 'add-popup',
+            skin: 'proxy-popup',
             area: ['500px', '400px'],
-            content: layui.laytpl(document.getElementById('addProxyTemplate').innerHTML).render({
-                type: type
-            }),
+            content: content,
             btn: ['Confirm', 'Cancel'],
             btn1: function (index) {
                 if (layui.form.validate('#addProxyTemplate')) {
@@ -132,8 +163,37 @@ var loadProxyInfo = (function ($) {
                 layui.layer.close(index);
             },
             success: function (layero, index, that) {
-                layui.form.render(null, 'addProxyForm');
+                layui.form.val('addProxyForm', basicData);
+                proxyPopupSuccess(layero, index, that, basicData);
             }
+        });
+    }
+
+    function proxyPopupSuccess(layero, index, that) {
+        layui.form.render(null, 'addProxyForm');
+        layui.form.on('input-affix(addition)', function (obj) {
+            var $paramValue = $(obj.elem);
+            var $paramName = $paramValue.closest('.layui-form-item').find('input');
+            var name = $paramName.first().val();
+            var value = $paramValue.val();
+            var html = document.getElementById('extraParamAddedTemplate').innerHTML;
+            var formItem = layui.laytpl(html).render({
+                name: name,
+                value: value
+            });
+            $paramValue.closest('.layui-tab-item').prepend(formItem);
+            $paramName.val('');
+            $paramValue.val('');
+
+            layui.form.render();
+
+            var tabContent = $paramValue.closest('.layui-tab-content');
+            var scrollHeight = tabContent.prop("scrollHeight");
+            tabContent.scrollTop(scrollHeight)
+        });
+        layui.form.on('input-affix(subtraction)', function (obj) {
+            var $elem = $(obj.elem);
+            $elem.closest('.layui-form-item').remove();
         });
     }
 
