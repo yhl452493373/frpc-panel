@@ -163,8 +163,7 @@
                     <div class="layui-form-item">
                         <label class="layui-form-label">ProxyType</label>
                         <div class="layui-input-block">
-                            <input type="text" name="type" value="{{= d.type.toUpperCase() }}" readonly
-                                   class="layui-input">
+                            <input type="text" name="type" readonly class="layui-input">
                         </div>
                     </div>
                     <div class="layui-form-item">
@@ -192,7 +191,7 @@
                     <div class="layui-form-item layui-form-text http https">
                         <label class="layui-form-label">Subdomain</label>
                         <div class="layui-input-block">
-                            <textarea name="subdomain" placeholder="Subdomain" autocomplete="off"
+                            <textarea name="sub_domain" placeholder="Subdomain" autocomplete="off"
                                       class="layui-textarea"></textarea>
                         </div>
                     </div>
@@ -226,29 +225,29 @@
                     </div>
                 </div>
                 <div class="layui-tab-item extra-param-tab-item">
-                    {{# layui.each(d.extraData, function(index, extra){ }}
                     <div class="layui-form-item">
                         <div class="layui-input-inline">
-                            <input type="text" name="paramName" value="{{= extra.name}}" class="layui-input"
+                            <input type="text" class="layui-input" placeholder="paramName">
+                        </div>
+                        <div class="layui-form-mid">=</div>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" lay-filter="addition"
+                                   lay-affix="addition" placeholder="paramValue">
+                        </div>
+                    </div>
+                    {{# layui.each(d.extraData, function(index, extra){ }}
+                    <div class="layui-form-item extra-param-item">
+                        <div class="layui-input-inline">
+                            <input type="text" value="{{= extra.name}}" class="layui-input"
                                    placeholder="paramName">
                         </div>
                         <div class="layui-form-mid">=</div>
                         <div class="layui-input-inline">
-                            <input type="text" name="paramValue" value="{{= extra.value }}" class="layui-input"
+                            <input type="text" value="{{= extra.value }}" class="layui-input"
                                    lay-filter="subtraction" lay-affix="subtraction" placeholder="paramValue">
                         </div>
                     </div>
                     {{# }); }}
-                    <div class="layui-form-item">
-                        <div class="layui-input-inline">
-                            <input type="text" name="paramName" class="layui-input" placeholder="paramName">
-                        </div>
-                        <div class="layui-form-mid">=</div>
-                        <div class="layui-input-inline">
-                            <input type="text" name="paramValue" class="layui-input" lay-filter="addition"
-                                   lay-affix="addition" placeholder="paramValue">
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -256,13 +255,13 @@
 </script>
 
 <script type="text/html" id="extraParamAddedTemplate">
-    <div class="layui-form-item">
+    <div class="layui-form-item extra-param-item">
         <div class="layui-input-inline">
-            <input type="text" name="paramName" value="{{= d.name}}" class="layui-input" placeholder="paramName">
+            <input type="text" value="{{= d.name}}" class="layui-input" placeholder="paramName">
         </div>
         <div class="layui-form-mid">=</div>
         <div class="layui-input-inline">
-            <input type="text" name="paramValue" value="{{= d.value }}" class="layui-input"
+            <input type="text" value="{{= d.value }}" class="layui-input"
                    lay-filter="subtraction" lay-affix="subtraction" placeholder="paramValue">
         </div>
     </div>

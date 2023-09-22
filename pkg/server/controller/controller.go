@@ -1,9 +1,9 @@
 package controller
 
 import (
+	"bytes"
 	"crypto/tls"
 	"fmt"
-	"github.com/fatedier/frp/pkg/config"
 	ginI18n "github.com/gin-contrib/i18n"
 	"github.com/gin-gonic/gin"
 	"github.com/vaughan0/go-ini"
@@ -77,37 +77,52 @@ func (c *HandleController) MakeLangFunc() func(context *gin.Context) {
 
 func (c *HandleController) MakeAddProxyFunc() func(context *gin.Context) {
 	return func(context *gin.Context) {
-		proxyType, exist := context.GetQuery("type")
-		if !exist {
-
-		}
-
-		proxy, exist := proxyConfTypeMap[proxyType]
-		if !exist {
-
-		}
+		proxy := ini.Section{}
 
 		response := OperationResponse{
 			Success: true,
 			Code:    Success,
-			Message: "user add success",
+			Message: "proxy add success",
 		}
 
 		err := context.BindJSON(&proxy)
 		if err != nil {
 			response.Success = false
 			response.Code = ParamError
-			response.Message = fmt.Sprintf("user add failed, param error : %v", err)
+			response.Message = fmt.Sprintf("proxy add failed, param error : %v", err)
 			log.Printf(response.Message)
 			context.JSON(http.StatusOK, &response)
 			return
 		}
 
-		err = c.reloadFrpc()
-		if err != nil {
+		name := proxy["name"]
+
+		if trimString(name) == "" {
+			response.Success = false
+			response.Code = ParamError
+			response.Message = fmt.Sprintf("proxy add failed, proxy name invalid")
+			log.Printf(response.Message)
+			context.JSON(http.StatusOK, &response)
+			return
+		}
+
+		if _, exist := clientProxies[name]; exist {
+			response.Success = false
+			response.Code = ProxyExist
+			response.Message = fmt.Sprintf("proxy add failed, proxy exist")
+			log.Printf(response.Message)
+			context.JSON(http.StatusOK, &response)
+			return
+		}
+
+		delete(proxy, "name")
+		clientProxies[name] = proxy
+
+		res := c.ReloadFrpc()
+		if !res.Success {
 			response.Success = false
 			response.Code = SaveError
-			response.Message = fmt.Sprintf("add failed, error : %v", err)
+			response.Message = fmt.Sprintf("proxy add failed, error : %v", res.Message)
 			log.Printf(response.Message)
 			context.JSON(http.StatusOK, &response)
 			return
@@ -119,20 +134,12 @@ func (c *HandleController) MakeAddProxyFunc() func(context *gin.Context) {
 
 func (c *HandleController) MakeUpdateProxyFunc() func(context *gin.Context) {
 	return func(context *gin.Context) {
-		proxyType, exist := context.GetQuery("type")
-		if !exist {
-
-		}
-
-		proxy, exist := proxyConfTypeMap[proxyType]
-		if !exist {
-
-		}
+		proxy := ini.Section{}
 
 		response := OperationResponse{
 			Success: true,
 			Code:    Success,
-			Message: "user update success",
+			Message: "proxy update success",
 		}
 
 		err := context.BindJSON(&proxy)
@@ -145,11 +152,39 @@ func (c *HandleController) MakeUpdateProxyFunc() func(context *gin.Context) {
 			return
 		}
 
-		err = c.reloadFrpc()
-		if err != nil {
+		oldName := proxy["oldName"]
+		name := proxy["name"]
+
+		if trimString(oldName) == "" || trimString(name) == "" {
+			response.Success = false
+			response.Code = ParamError
+			response.Message = fmt.Sprintf("proxy add failed, proxy name invalid")
+			log.Printf(response.Message)
+			context.JSON(http.StatusOK, &response)
+			return
+		}
+
+		if oldName != name {
+			if _, exist := clientProxies[name]; exist {
+				response.Success = false
+				response.Code = ProxyExist
+				response.Message = fmt.Sprintf("proxy update failed, proxy exist")
+				log.Printf(response.Message)
+				context.JSON(http.StatusOK, &response)
+				return
+			}
+		}
+
+		delete(proxy, "name")
+		delete(proxy, oldName)
+		delete(clientProxies, oldName)
+		clientProxies[name] = proxy
+
+		res := c.ReloadFrpc()
+		if res.Code != Success {
 			response.Success = false
 			response.Code = SaveError
-			response.Message = fmt.Sprintf("user update failed, error : %v", err)
+			response.Message = fmt.Sprintf("user update failed, error : %v", res.Message)
 			log.Printf(response.Message)
 			context.JSON(http.StatusOK, &response)
 			return
@@ -161,15 +196,7 @@ func (c *HandleController) MakeUpdateProxyFunc() func(context *gin.Context) {
 
 func (c *HandleController) MakeRemoveProxyFunc() func(context *gin.Context) {
 	return func(context *gin.Context) {
-		proxyType, exist := context.GetQuery("type")
-		if !exist {
-
-		}
-
-		proxy, exist := proxyConfTypeMap[proxyType]
-		if !exist {
-
-		}
+		proxy := make(map[string]interface{})
 
 		response := OperationResponse{
 			Success: true,
@@ -187,11 +214,11 @@ func (c *HandleController) MakeRemoveProxyFunc() func(context *gin.Context) {
 			return
 		}
 
-		err = c.reloadFrpc()
-		if err != nil {
+		res := c.ReloadFrpc()
+		if !res.Success {
 			response.Success = false
 			response.Code = SaveError
-			response.Message = fmt.Sprintf("user update failed, error : %v", err)
+			response.Message = fmt.Sprintf("user update failed, error : %v", res.Message)
 			log.Printf(response.Message)
 			context.JSON(http.StatusOK, &response)
 			return
@@ -269,7 +296,7 @@ func (c *HandleController) MakeProxyFunc() func(context *gin.Context) {
 		if serverApi == "/api/config" {
 			proxyType, _ := context.GetQuery("type")
 			content := fmt.Sprintf("%s", res.Data)
-			configure, err := parseConfigure(content, trimString(proxyType))
+			configure, err := c.parseConfigure(content, trimString(proxyType))
 
 			if err != nil {
 				res.Success = false
@@ -283,33 +310,85 @@ func (c *HandleController) MakeProxyFunc() func(context *gin.Context) {
 	}
 }
 
-func parseConfigure(content, proxyType string) (interface{}, error) {
+func (c *HandleController) ReloadFrpc() ProxyResponse {
+	var client *http.Client
+	var protocol string
 
-	if proxyType == "none" {
-		common, err := config.UnmarshalClientConfFromIni(content)
-
-		if err != nil {
-			return nil, err
+	if c.CommonInfo.DashboardTls {
+		client = &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: true,
+				},
+			},
 		}
-
-		return common, nil
+		protocol = "https://"
+	} else {
+		client = http.DefaultClient
+		protocol = "http://"
 	}
 
-	cfg, err := ini.Load(strings.NewReader(content))
-	proxyList := make(map[string]ini.Section)
-	for name, section := range cfg {
-		if name == "common" {
-			continue
-		}
-		if proxyType != "" && strings.ToLower(section["type"]) != strings.ToLower(proxyType) {
-			continue
-		}
-		proxyList[name] = section
+	res := ProxyResponse{}
+	host := c.CommonInfo.DashboardAddr
+	port := c.CommonInfo.DashboardPort
+	serverApi := "/api/config"
+	requestUrl := protocol + host + ":" + strconv.Itoa(port) + serverApi
+	request, _ := http.NewRequest("PUT", requestUrl, bytes.NewReader(serializeSectionsToString()))
+	username := c.CommonInfo.DashboardUser
+	password := c.CommonInfo.DashboardPwd
+	if trimString(username) != "" && trimString(password) != "" {
+		request.SetBasicAuth(username, password)
 	}
+
+	response, err := client.Do(request)
 
 	if err != nil {
-		return nil, err
-	} else {
-		return proxyList, nil
+		res.Code = FrpServerError
+		res.Success = false
+		res.Message = err.Error()
+		log.Print(err)
+		return res
 	}
+
+	res.Code = response.StatusCode
+	body, err := io.ReadAll(response.Body)
+
+	if err != nil {
+		res.Success = false
+		res.Message = err.Error()
+	} else {
+		if res.Code == http.StatusOK {
+			res.Success = true
+			res.Data = string(body)
+			res.Message = fmt.Sprintf("Proxy to %s success", requestUrl)
+		} else {
+			res.Success = false
+			if res.Code == http.StatusNotFound {
+				res.Message = fmt.Sprintf("Proxy to %s error: url not found", requestUrl)
+			} else {
+				res.Message = fmt.Sprintf("Proxy to %s error: %s", requestUrl, string(body))
+			}
+		}
+	}
+	log.Printf(res.Message)
+	return res
+}
+
+func serializeSectionsToString() []byte {
+	var build strings.Builder
+	build.WriteString("[common]\n")
+	for key, value := range clientCommon {
+		build.WriteString(fmt.Sprintf("%s = %s\n", key, value))
+	}
+	build.WriteString("\n")
+
+	for name, section := range clientProxies {
+		build.WriteString(fmt.Sprintf("[%s]\n", name))
+		for key, value := range section {
+			build.WriteString(fmt.Sprintf("%s = %s\n", key, value))
+		}
+		build.WriteString("\n")
+	}
+
+	return []byte(build.String())
 }

@@ -1,9 +1,7 @@
 package controller
 
 import (
-	"github.com/fatedier/frp/pkg/config"
-	"github.com/fatedier/frp/pkg/consts"
-	"reflect"
+	"github.com/vaughan0/go-ini"
 )
 
 const (
@@ -11,6 +9,8 @@ const (
 	ParamError
 	SaveError
 	FrpServerError
+	ProxyExist
+	ProxyNotExist
 )
 
 const (
@@ -29,19 +29,13 @@ const (
 )
 
 var (
-	proxyConfTypeMap map[string]reflect.Type
+	clientCommon  ini.Section
+	clientProxies map[string]ini.Section
 )
 
 func init() {
-	proxyConfTypeMap = make(map[string]reflect.Type)
-	proxyConfTypeMap[consts.TCPProxy] = reflect.TypeOf(config.TCPProxyConf{})
-	proxyConfTypeMap[consts.TCPMuxProxy] = reflect.TypeOf(config.TCPMuxProxyConf{})
-	proxyConfTypeMap[consts.UDPProxy] = reflect.TypeOf(config.UDPProxyConf{})
-	proxyConfTypeMap[consts.HTTPProxy] = reflect.TypeOf(config.HTTPProxyConf{})
-	proxyConfTypeMap[consts.HTTPSProxy] = reflect.TypeOf(config.HTTPSProxyConf{})
-	proxyConfTypeMap[consts.STCPProxy] = reflect.TypeOf(config.STCPProxyConf{})
-	proxyConfTypeMap[consts.XTCPProxy] = reflect.TypeOf(config.XTCPProxyConf{})
-	proxyConfTypeMap[consts.SUDPProxy] = reflect.TypeOf(config.SUDPProxyConf{})
+	clientCommon = ini.Section{}
+	clientProxies = make(map[string]ini.Section)
 }
 
 type HTTPError struct {
@@ -78,6 +72,10 @@ type OperationResponse struct {
 type ProxyResponse struct {
 	OperationResponse
 	Data any `json:"data"`
+}
+
+type ClientProxies struct {
+	Proxy ini.Section `json:"proxy"`
 }
 
 func (e *HTTPError) Error() string {

@@ -2,6 +2,15 @@ var loadProxyInfo = (function ($) {
     var i18n = {};
     //param names in Basic tab
     var basicParamNames = ['name', 'type', 'local_ip', 'local_port', 'custom_domains', 'subdomain', 'remote_port', 'use_encryption', 'use_compression'];
+    //param need to convert type
+    var intParamNames = ['local_port', 'health_check_timeout_s', 'health_check_max_failed', 'health_check_interval_s'];
+    var booleanParamNames = ['use_encryption', 'use_compression'];
+    var stringArrayParamNames = ['custom_domains', 'locations']
+    var mapParamPrefixes = [
+        {name: 'metas', prefix: 'meta_'},
+        {name: 'plugin_params', prefix: 'plugin_'},
+        {name: 'headers', prefix: 'header_'}
+    ];
 
     /**
      * get proxy info
@@ -46,6 +55,7 @@ var loadProxyInfo = (function ($) {
 
         var $section = $('#content > section');
         var cols = [
+            {type: 'checkbox'},
             {field: 'name', title: 'Name', sort: true},
             {field: 'type', title: 'Type', sort: true},
             {field: 'local_ip', title: 'Local Ip', sort: true},
@@ -92,7 +102,9 @@ var loadProxyInfo = (function ($) {
 
             switch (obj.event) {
                 case 'add':
-                    proxyPopup(type, null);
+                    proxyPopup(type, {
+                        type: type
+                    }, false);
                     break
                 case 'remove':
                     // batchRemovePopup(data);
@@ -109,7 +121,8 @@ var loadProxyInfo = (function ($) {
 
             switch (obj.event) {
                 case 'update':
-                    proxyPopup(type, data);
+                    data.oldName = data.name;
+                    proxyPopup(type, data, true);
                     break;
                 case 'remove':
                     // removePopup(data);
@@ -119,11 +132,12 @@ var loadProxyInfo = (function ($) {
     }
 
     /**
-     * add proxy popup
+     * addOrUpdate proxy popup
      * @param type proxy type
      * @param data {Map<string,object>} proxy data
+     * @param update update flag. true - update, false - add
      */
-    function proxyPopup(type, data) {
+    function proxyPopup(type, data, update) {
         var basicData = {};
         var extraData = [];
         if (data != null) {
@@ -155,8 +169,15 @@ var loadProxyInfo = (function ($) {
             btn: ['Confirm', 'Cancel'],
             btn1: function (index) {
                 if (layui.form.validate('#addProxyTemplate')) {
-                    var formData = layui.form.val('addProxyTemplate');
-                    add(formData, index);
+                    var formData = layui.form.val('addProxyForm');
+                    var $items = $('#addProxyForm .extra-param-tab-item .extra-param-item');
+                    $items.each(function () {
+                        var name = $(this).find('input').first().val();
+                        var value = $(this).find('input').last().val();
+                        formData[name] = value;
+                    });
+
+                    addOrUpdate(type, formData, index, update);
                 }
             },
             btn2: function (index) {
@@ -167,6 +188,43 @@ var loadProxyInfo = (function ($) {
                 proxyPopupSuccess(layero, index, that, basicData);
             }
         });
+    }
+
+
+    /**
+     * repack form data
+     * @param formData
+     * @returns {*}
+     */
+    function repackData(formData) {
+        mapParamPrefixes.forEach(function (temp) {
+            var name = temp.name;
+            var prefix = temp.prefix;
+            for (var key in formData) {
+                if (key !== name && key.startsWith(prefix)) {
+                    formData[name] = formData[name] || {};
+                    var newKey = key.replace(prefix, '');
+                    formData[name][newKey] = formData[key];
+                    delete formData[key];
+                }
+            }
+        });
+        intParamNames.forEach(function (paramName) {
+            if (formData.hasOwnProperty(paramName) && formData[paramName] !== '') {
+                formData[paramName] = parseInt(formData[paramName]);
+            }
+        });
+        booleanParamNames.forEach(function (paramName) {
+            if (formData.hasOwnProperty(paramName) && formData[paramName] !== '') {
+                formData[paramName] = formData[paramName] === 'true';
+            }
+        });
+        stringArrayParamNames.forEach(function (paramName) {
+            if (formData.hasOwnProperty(paramName) && formData[paramName] !== '') {
+                formData[paramName] = formData[paramName].split(',');
+            }
+        });
+        return formData;
     }
 
     function proxyPopupSuccess(layero, index, that) {
@@ -181,15 +239,15 @@ var loadProxyInfo = (function ($) {
                 name: name,
                 value: value
             });
-            $paramValue.closest('.layui-tab-item').prepend(formItem);
+            $paramValue.closest('.layui-tab-item').append(formItem);
             $paramName.val('');
             $paramValue.val('');
 
             layui.form.render();
 
-            var tabContent = $paramValue.closest('.layui-tab-content');
-            var scrollHeight = tabContent.prop("scrollHeight");
-            tabContent.scrollTop(scrollHeight)
+            // var tabContent = $paramValue.closest('.layui-tab-content');
+            // var scrollHeight = tabContent.prop("scrollHeight");
+            // tabContent.scrollTop(scrollHeight)
         });
         layui.form.on('input-affix(subtraction)', function (obj) {
             var $elem = $(obj.elem);
@@ -198,62 +256,32 @@ var loadProxyInfo = (function ($) {
     }
 
     /**
-     * add proxy action
-     * @param data {{user:string, token:string, comment:string, enable:boolean, ports:[string|number], domains:[string], subdomains:[string]}} user data
+     * addOrUpdate proxy action
+     * @param type proxy type
+     * @param data proxy data
      * @param index popup index
+     * @param update update flag. true - update, false - add
      */
-    function add(data, index) {
+    function addOrUpdate(type, data, index, update) {
         var loading = layui.layer.load();
+        var url = '';
+        if (update) {
+            url = '/update';
+        } else {
+            url = '/add?type=' + type;
+        }
         $.ajax({
-            url: '/add',
+            url: url,
             type: 'post',
             contentType: 'application/json',
             data: JSON.stringify(data),
             success: function (result) {
-                // if (result.success) {
-                //     reloadTable();
-                //     layui.layer.close(index);
-                //     layui.layer.msg(i18n['OperateSuccess'], function (index) {
-                //         layui.layer.close(index);
-                //     });
-                // } else {
-                //     errorMsg(result);
-                // }
-            },
-            complete: function () {
-                layui.layer.close(loading);
-            }
-        });
-    }
-
-    /**
-     * update proxy action
-     * @param before {{user:string, token:string, comment:string, enable:boolean, ports:[string|number], domains:[string], subdomains:[string]}} data before update
-     * @param after {{user:string, token:string, comment:string, enable:boolean, ports:[string|number], domains:[string], subdomains:[string]}} data after update
-     */
-    function update(before, after) {
-        before.ports.forEach(function (port, index) {
-            if (/^\d+$/.test(String(port))) {
-                before.ports[index] = parseInt(String(port));
-            }
-        });
-        after.ports.forEach(function (port, index) {
-            if (/^\d+$/.test(String(port)) && typeof port === "string") {
-                after.ports[index] = parseInt(String(port));
-            }
-        });
-        var loading = layui.layer.load();
-        $.ajax({
-            url: '/update',
-            type: 'post',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                before: before,
-                after: after,
-            }),
-            success: function (result) {
                 if (result.success) {
-                    layui.layer.msg(i18n['OperateSuccess']);
+                    reloadTable();
+                    layui.layer.close(index);
+                    layui.layer.msg('OperateSuccess', function (index) {
+                        layui.layer.close(index);
+                    });
                 } else {
                     errorMsg(result);
                 }
@@ -279,6 +307,37 @@ var loadProxyInfo = (function ($) {
         }, function (index) {
             operate(apiType.Remove, data, index);
         });
+    }
+
+    /**
+     * reload user table
+     */
+    function reloadTable() {
+        // var searchData = layui.form.val('searchForm');
+        var searchData = {};
+        layui.table.reloadData('tokenTable', {
+            where: searchData
+        }, true)
+    }
+
+    /**
+     * show error message popup
+     * @param result
+     */
+    function errorMsg(result) {
+        layui.layer.msg(result.message);
+        // var reason = i18n['OtherError'];
+        // if (result.code === 1)
+        //     reason = i18n['ParamError'];
+        // else if (result.code === 2)
+        //     reason = i18n['SaveError'];
+        // else if (result.code === 3)
+        //     reason = i18n['FrpServerError'];
+        // else if (result.code === 4)
+        //     reason = i18n['ProxyExist'];
+        // else if (result.code === 5)
+        //     reason = i18n['ProxyNotExist'];
+        // layui.layer.msg(i18n['OperateFailed'] + ',' + reason)
     }
 
     return loadProxyInfo;
