@@ -1,5 +1,5 @@
 var loadProxyInfo = (function ($) {
-    var i18n = {};
+    var i18n = {}, currentProxyType, currentTitle;
     //param names in Basic tab
     var basicParamNames = ['name', 'type', 'local_ip', 'local_port', 'custom_domains', 'subdomain', 'remote_port', 'use_encryption', 'use_compression'];
     //param need to convert type
@@ -19,17 +19,22 @@ var loadProxyInfo = (function ($) {
      * @param proxyType proxy type
      */
     function loadProxyInfo(lang, title, proxyType) {
-        i18n = lang;
-        $("#title").text(title);
+        if (lang != null)
+            i18n = lang;
+        if (title != null)
+            currentTitle = title;
+        if (proxyType != null)
+            currentProxyType = proxyType;
+        $("#title").text(currentTitle);
         $('#content').empty();
         var loading = layui.layer.load();
 
         $.getJSON('/proxy/api/config', {
-            type: proxyType
+            type: currentProxyType
         }).done(function (result) {
             if (result.success) {
                 $('#content').html($('#proxyListTableTemplate').html());
-                renderProxyListTable(result.data, proxyType);
+                renderProxyListTable(result.data);
             } else {
                 layui.layer.msg(result.message);
             }
@@ -41,9 +46,8 @@ var loadProxyInfo = (function ($) {
     /**
      * render proxy list table
      * @param data {Map<string,Map<string,string>>} proxy data
-     * @param proxyType proxy type
      */
-    function renderProxyListTable(data, proxyType) {
+    function renderProxyListTable(data) {
         var dataList = [];
         for (var key in data) {
             var temp = data[key];
@@ -82,15 +86,13 @@ var loadProxyInfo = (function ($) {
             proxyListTable.resize();
         }
 
-        bindFormEvent(proxyType);
+        bindFormEvent();
     }
 
     /**
      * bind event of {{@link layui.form}}
-     *
-     * @param type proxy type
      */
-    function bindFormEvent(type) {
+    function bindFormEvent() {
         layui.table.on('toolbar(proxyListTable)', function (obj) {
             var id = obj.config.id;
             var checkStatus = layui.table.checkStatus(id);
@@ -102,8 +104,8 @@ var loadProxyInfo = (function ($) {
 
             switch (obj.event) {
                 case 'add':
-                    proxyPopup(type, {
-                        type: type
+                    proxyPopup({
+                        type: currentProxyType
                     }, false);
                     break
                 case 'remove':
@@ -122,7 +124,7 @@ var loadProxyInfo = (function ($) {
             switch (obj.event) {
                 case 'update':
                     data.oldName = data.name;
-                    proxyPopup(type, data, true);
+                    proxyPopup(data, true);
                     break;
                 case 'remove':
                     // removePopup(data);
@@ -133,11 +135,10 @@ var loadProxyInfo = (function ($) {
 
     /**
      * addOrUpdate proxy popup
-     * @param type proxy type
      * @param data {Map<string,object>} proxy data
      * @param update update flag. true - update, false - add
      */
-    function proxyPopup(type, data, update) {
+    function proxyPopup(data, update) {
         var basicData = {};
         var extraData = [];
         if (data != null) {
@@ -157,7 +158,7 @@ var loadProxyInfo = (function ($) {
         }
         var html = document.getElementById('addProxyTemplate').innerHTML;
         var content = layui.laytpl(html).render({
-            type: type,
+            type: currentProxyType,
             extraData: extraData
         });
         layui.layer.open({
@@ -177,7 +178,7 @@ var loadProxyInfo = (function ($) {
                         formData[name] = value;
                     });
 
-                    addOrUpdate(type, formData, index, update);
+                    addOrUpdate(formData, index, update);
                 }
             },
             btn2: function (index) {
@@ -257,18 +258,17 @@ var loadProxyInfo = (function ($) {
 
     /**
      * addOrUpdate proxy action
-     * @param type proxy type
      * @param data proxy data
      * @param index popup index
      * @param update update flag. true - update, false - add
      */
-    function addOrUpdate(type, data, index, update) {
+    function addOrUpdate(data, index, update) {
         var loading = layui.layer.load();
         var url = '';
         if (update) {
             url = '/update';
         } else {
-            url = '/add?type=' + type;
+            url = '/add?type=' + currentProxyType;
         }
         $.ajax({
             url: url,
@@ -313,11 +313,7 @@ var loadProxyInfo = (function ($) {
      * reload user table
      */
     function reloadTable() {
-        // var searchData = layui.form.val('searchForm');
-        var searchData = {};
-        layui.table.reloadData('tokenTable', {
-            where: searchData
-        }, true)
+        loadProxyInfo(null, null, null);
     }
 
     /**

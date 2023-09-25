@@ -14,8 +14,8 @@ tls_mode = false
 #tls_key_file = "cert.key"
 
 # frpc dashboard info
-dashboard_addr = "home.frp.yanghuanglin.com"
-dashboard_port = 80
+dashboard_addr = "127.0.0.1"
+dashboard_port = 7400
 dashboard_user = "admin"
-dashboard_pwd = "19910621"
+dashboard_pwd = "admin"
 

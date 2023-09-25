@@ -176,12 +176,12 @@ func (c *HandleController) MakeUpdateProxyFunc() func(context *gin.Context) {
 		}
 
 		delete(proxy, "name")
-		delete(proxy, oldName)
+		delete(proxy, "oldName")
 		delete(clientProxies, oldName)
 		clientProxies[name] = proxy
 
 		res := c.ReloadFrpc()
-		if res.Code != Success {
+		if !res.Success {
 			response.Success = false
 			response.Code = SaveError
 			response.Message = fmt.Sprintf("user update failed, error : %v", res.Message)
