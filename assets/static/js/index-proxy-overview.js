@@ -1,4 +1,4 @@
-var loadProxiesStatus = (function ($) {
+var loadOverview = (function ($) {
     var i18n = {};
 
     /**
@@ -6,7 +6,7 @@ var loadProxiesStatus = (function ($) {
      * @param lang {{}} language json
      * @param title page title
      */
-    function loadProxiesStatus(lang, title) {
+    function loadOverview(lang, title) {
         i18n = lang;
         $("#title").text(title);
         $('#content').empty();
@@ -14,8 +14,8 @@ var loadProxiesStatus = (function ($) {
 
         $.getJSON('/proxy/api/status').done(function (result) {
             if (result.success) {
-                $('#content').html($('#proxiesTableTemplate').html());
-                renderProxiesTable(JSON.parse(result.data));
+                $('#content').html($('#overviewTableTemplate').html());
+                renderOverviewTable(JSON.parse(result.data));
             } else {
                 layui.layer.msg(result.message);
             }
@@ -29,7 +29,7 @@ var loadProxiesStatus = (function ($) {
      * @param data {Map<string,Map<string,string>>} proxy data
      * @param proxyType proxy type
      */
-    function renderProxiesTable(data, proxyType) {
+    function renderOverviewTable(data, proxyType) {
         var dataList = [];
         for (var type in data) {
             var temp = data[type];
@@ -57,8 +57,8 @@ var loadProxiesStatus = (function ($) {
             {field: 'err', title: i18n['Info'], templet: '<span>{{= d.err || "-" }}</span>', width: 200}
         ];
 
-        var proxiesTable = layui.table.render({
-            elem: '#proxiesTable',
+        var overviewTable = layui.table.render({
+            elem: '#overviewTable',
             height: $section.height(),
             text: {none: i18n['EmptyData']},
             cols: [cols],
@@ -73,9 +73,9 @@ var loadProxiesStatus = (function ($) {
         });
 
         window.onresize = function () {
-            proxiesTable.resize();
+            overviewTable.resize();
         }
     }
 
-    return loadProxiesStatus;
+    return loadOverview;
 })(layui.$);

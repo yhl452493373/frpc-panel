@@ -18,8 +18,8 @@
                     var title = elem.text();
                     if (id === 'clientInfo') {
                         loadClientInfo(lang, title.trim());
-                    } else if (id === 'proxiesStatus') {
-                        loadProxiesStatus(lang, title.trim());
+                    } else if (id === 'overview') {
+                        loadOverview(lang, title.trim());
                     } else if (elem.closest('.layui-nav-item').attr('id') === 'proxies') {
                         if (id != null && id.trim() !== '') {
                             var suffix = elem.closest('.layui-nav-item').children('a').text().trim();

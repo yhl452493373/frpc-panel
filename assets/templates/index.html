@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="./static/css/index.css?v=${ .version }">
     <link rel="stylesheet" href="./static/css/color.css?v=${ .version }">
     <script src="./static/lib/layui/layui.js?v=${ .version }"></script>
-    <script src="./static/js/index-proxy-status.js?v=${ .version }"></script>
     <script src="./static/js/index-client-info.js?v=${ .version }"></script>
+    <script src="./static/js/index-proxy-overview.js?v=${ .version }"></script>
     <script src="./static/js/index-proxy-list.js?v=${ .version }"></script>
     <script src="./static/js/index.js?v=${ .version }"></script>
 </head>
@@ -30,7 +30,7 @@
                     <a href="javascript:void(0)" id="clientInfo">${ .ClientInfo }</a>
                 </li>
                 <li class="layui-nav-item">
-                    <a href="javascript:void(0)" id="proxiesStatus">${ .ProxiesStatus }</a>
+                    <a href="javascript:void(0)" id="overview">${ .Overview }</a>
                 </li>
                 <li class="layui-nav-item layui-nav-itemed" id="proxies">
                     <a class="" href="javascript:void(0)">${ .Proxies }</a>
@@ -65,9 +65,9 @@
 </div>
 
 <!--代理列表-代理表格模板-->
-<script type="text/html" id="proxiesTableTemplate">
-    <section class="proxies">
-        <table id="proxiesTable" lay-filter="proxiesTable"></table>
+<script type="text/html" id="overviewTableTemplate">
+    <section class="overview">
+        <table id="overviewTable" lay-filter="overviewTable"></table>
     </section>
 </script>
 
@@ -176,18 +176,18 @@
                                    class="layui-input"/>
                         </div>
                     </div>
-                    {{# if (d.type === 'http' || d.type === 'https') { }}
+                    {{# if (d.type.toLowerCase() === 'http' || d.type.toLowerCase() === 'https') { }}
                     <div class="layui-form-item http https">
-                        <label class="layui-form-label">${ .CustomizeDomains }</label>
+                        <label class="layui-form-label">${ .CustomDomains }</label>
                         <div class="layui-input-block">
-                            <textarea name="custom_domains" placeholder="${ .CustomizeDomains }" autocomplete="off"
+                            <textarea name="custom_domains" placeholder="${ .CustomDomains }" autocomplete="off"
                                       class="layui-textarea"></textarea>
                         </div>
                     </div>
                     <div class="layui-form-item layui-form-text http https">
                         <label class="layui-form-label">${ .Subdomain }</label>
                         <div class="layui-input-block">
-                            <textarea name="sub_domain" placeholder="${ .Subdomain }" autocomplete="off"
+                            <textarea name="subdomain" placeholder="${ .Subdomain }" autocomplete="off"
                                       class="layui-textarea"></textarea>
                         </div>
                     </div>

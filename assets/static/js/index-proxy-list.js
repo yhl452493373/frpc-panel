@@ -1,7 +1,7 @@
 var loadProxyInfo = (function ($) {
     var i18n = {}, currentProxyType, currentTitle;
     //param names in Basic tab
-    var basicParamNames = ['name', 'type', 'local_ip', 'local_port', 'custom_domains', 'sub_domain', 'remote_port', 'use_encryption', 'use_compression'];
+    var basicParamNames = ['name', 'type', 'local_ip', 'local_port', 'custom_domains', 'subdomain', 'remote_port', 'use_encryption', 'use_compression'];
 
     /**
      * get proxy info
@@ -15,7 +15,7 @@ var loadProxyInfo = (function ($) {
         if (title != null)
             currentTitle = title;
         if (proxyType != null)
-            currentProxyType = proxyType;
+            currentProxyType = proxyType.toLowerCase();
         $("#title").text(currentTitle);
         $('#content').empty();
         var loading = layui.layer.load();
@@ -45,6 +45,11 @@ var loadProxyInfo = (function ($) {
             temp.name = key;
             temp.local_ip = temp.local_ip || '-';
             temp.local_port = temp.local_port || '-';
+            temp.use_encryption = temp.use_encryption || false;
+            if (currentProxyType === 'http' || currentProxyType === 'https') {
+                temp.custom_domains = temp.custom_domains || '-';
+                temp.subdomain = temp.subdomain || '-';
+            }
             dataList.push(temp);
         }
 
@@ -52,11 +57,29 @@ var loadProxyInfo = (function ($) {
         var cols = [
             {type: 'checkbox'},
             {field: 'name', title: i18n['Name'], sort: true},
-            {field: 'type', title: i18n['Type'], sort: true},
-            {field: 'local_ip', title: i18n['LocalIp'], sort: true},
-            {field: 'local_port', title: i18n['LocalPort'], sort: true},
-            {title: i18n['Operation'], width: 150, toolbar: '#proxyListOperationTemplate'}
+            {field: 'type', title: i18n['Type'], width: 110, sort: true},
+            {field: 'local_ip', title: i18n['LocalIp'], width: 150, sort: true},
+            {field: 'local_port', title: i18n['LocalPort'], width: 120, sort: true},
         ];
+
+        if (currentProxyType === 'tcp' || currentProxyType === 'udp') {
+            cols.push({field: 'remote_port', title: i18n['RemotePort'], width: 130, sort: true});
+        } else if (currentProxyType === 'http' || currentProxyType === 'https') {
+            cols.push({field: 'custom_domains', title: i18n['CustomDomains'], sort: true});
+            cols.push({field: 'subdomain', title: i18n['Subdomain'], width: 150, sort: true});
+        }
+
+        cols.push({
+            field: 'use_encryption', title: i18n['UseEncryption'], width: 170, templet: function (d) {
+                return i18n[d.use_encryption]
+            }, sort: true
+        });
+        cols.push({
+            field: 'use_compression', title: i18n['UseCompression'], width: 170, templet: function (d) {
+                return i18n[d.use_compression]
+            }, sort: true
+        });
+        cols.push({title: i18n['Operation'], width: 150, toolbar: '#proxyListOperationTemplate'});
 
         var proxyListTable = layui.table.render({
             elem: '#proxyListTable',
@@ -157,7 +180,7 @@ var loadProxyInfo = (function ($) {
             type: 1,
             title: false,
             skin: 'proxy-popup',
-            area: ['500px', '400px'],
+            area: ['400px', '400px'],
             content: content,
             btn: [i18n['Confirm'], i18n['Cancel']],
             btn1: function (index) {
