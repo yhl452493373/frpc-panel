@@ -80,31 +80,33 @@ func (c *HandleController) getClientResponse(request *http.Request, client *http
 	return response, err
 }
 
-func (c *HandleController) parseResponse(res *ProxyResponse, response *http.Response) string {
+func (c *HandleController) parseResponse(res *ProxyResponse, response *http.Response) {
 	res.Code = response.StatusCode
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		res.Success = false
 		res.Message = err.Error()
 	} else {
+		bodyString := string(body)
 		url := response.Request.URL
 		if res.Code == http.StatusOK {
 			res.Success = true
-			res.Data = string(body)
+			res.Data = bodyString
 			res.Message = fmt.Sprintf("Proxy to %s success", url)
 		} else {
 			res.Success = false
 			if res.Code == http.StatusNotFound {
 				res.Message = fmt.Sprintf("Proxy to %s error: url not found", url)
+			} else if res.Code == http.StatusBadRequest {
+				res.Code = ReloadFail
+				res.Message = bodyString
 			} else {
-				res.Message = fmt.Sprintf("Proxy to %s error: %s", url, string(body))
+				res.Message = fmt.Sprintf("Proxy to %s error: %s", url, bodyString)
 			}
 		}
 	}
 
 	log.Printf(res.Message)
-
-	return string(body)
 }
 
 func (c *HandleController) parseConfigure(content, proxyType string) (interface{}, error) {

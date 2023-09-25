@@ -65,5 +65,6 @@
   "Param Error": "Param error",
   "Frp Client Error": "Frp client error",
   "Proxy Exist,": "Proxy name exist",
-  "Proxy Not Exist": "Proxy name not exist"
+  "Proxy Not Exist": "Proxy name not exist",
+  "Client Tips": "Client tips"
 }

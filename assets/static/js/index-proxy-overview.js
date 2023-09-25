@@ -39,7 +39,7 @@ var loadOverview = (function ($) {
         var $section = $('#content > section');
         var cols = [
             {field: 'name', title: i18n['Name'], sort: true},
-            {field: 'type', title: i18n['Type'], width: 100, sort: true},
+            {field: 'type', title: i18n['Type'], width: 110, sort: true},
             {
                 field: 'local_addr',
                 title: i18n['LocalAddress'],

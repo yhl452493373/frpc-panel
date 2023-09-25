@@ -65,5 +65,6 @@
   "Param Error": "参数错误",
   "Frp Client Error": "Frp客户端错误",
   "Proxy Exist": "代理名称重复",
-  "Proxy Not Exist": "代理名称不存在"
+  "Proxy Not Exist": "代理名称不存在",
+  "Client Tips": "客户端提示"
 }

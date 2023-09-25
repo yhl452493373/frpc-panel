@@ -46,6 +46,7 @@ var loadProxyInfo = (function ($) {
             temp.local_ip = temp.local_ip || '-';
             temp.local_port = temp.local_port || '-';
             temp.use_encryption = temp.use_encryption || false;
+            temp.use_compression = temp.use_compression || false;
             if (currentProxyType === 'http' || currentProxyType === 'https') {
                 temp.custom_domains = temp.custom_domains || '-';
                 temp.subdomain = temp.subdomain || '-';
@@ -180,7 +181,7 @@ var loadProxyInfo = (function ($) {
             type: 1,
             title: false,
             skin: 'proxy-popup',
-            area: ['400px', '400px'],
+            area: ['450px', '400px'],
             content: content,
             btn: [i18n['Confirm'], i18n['Cancel']],
             btn1: function (index) {
@@ -254,13 +255,15 @@ var loadProxyInfo = (function ($) {
             data: JSON.stringify(data),
             success: function (result) {
                 if (result.success) {
-                    reloadTable();
                     layui.layer.close(index);
-                    layui.layer.msg(i18n['OperateSuccess'], function (index) {
-                        layui.layer.close(index);
-                    });
+                    reloadTable();
+                    layui.layer.msg(i18n['OperateSuccess']);
                 } else {
                     errorMsg(result);
+                    if (result.code === 5) {
+                        layui.layer.close(index);
+                        reloadTable();
+                    }
                 }
             },
             complete: function () {
@@ -278,10 +281,19 @@ var loadProxyInfo = (function ($) {
             layui.layer.msg(i18n['ShouldCheckProxy']);
             return;
         }
+        data.forEach(function (temp) {
+            for (var key in temp) {
+                if (typeof temp[key] === 'boolean') {
+                    temp[key] = temp[key] + '';
+                }
+            }
+        });
         layui.layer.confirm(i18n['ConfirmRemoveProxy'], {
             title: i18n['OperationConfirm'],
             btn: [i18n['Confirm'], i18n['Cancel']]
         }, function (index) {
+            layui.layer.close(index);
+
             var loading = layui.layer.load();
             $.post({
                 url: '/remove',
@@ -290,13 +302,15 @@ var loadProxyInfo = (function ($) {
                 data: JSON.stringify(data),
                 success: function (result) {
                     if (result.success) {
-                        reloadTable();
                         layui.layer.close(index);
-                        layui.layer.msg(i18n['OperateSuccess'], function (index) {
-                            layui.layer.close(index);
-                        });
+                        reloadTable();
+                        layui.layer.msg(i18n['OperateSuccess']);
                     } else {
                         errorMsg(result);
+                        if (result.code === 5) {
+                            layui.layer.close(index);
+                            reloadTable();
+                        }
                     }
                 },
                 complete: function () {
@@ -327,7 +341,15 @@ var loadProxyInfo = (function ($) {
             reason = i18n['ProxyExist'];
         else if (result.code === 4)
             reason = i18n['ProxyNotExist'];
-        layui.layer.msg(i18n['OperateFailed'] + ',' + reason)
+        if (result.code === 5) {
+            layui.layer.alert(result.message, {
+                title: i18n['ClientTips'],
+                maxWidth: 350,
+                btn: [i18n['Confirm']]
+            });
+        } else {
+            layui.layer.msg(i18n['OperateFailed'] + ',' + reason);
+        }
     }
 
     return loadProxyInfo;

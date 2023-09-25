@@ -10,6 +10,7 @@ const (
 	FrpClientError
 	ProxyExist
 	ProxyNotExist
+	ReloadFail
 )
 
 const (

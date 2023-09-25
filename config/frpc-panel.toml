@@ -3,8 +3,8 @@
 # frps panel config info
 plugin_addr = "0.0.0.0"
 plugin_port = 7300
-#admin_user = "admin"
-#admin_pwd = "admin"
+admin_user = "admin"
+admin_pwd = "admin"
 # specified login state keep time
 admin_keep_time = 0
 

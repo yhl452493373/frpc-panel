@@ -134,6 +134,7 @@ func (c *HandleController) MakeLangFunc() func(context *gin.Context) {
 			"FrpClientError":     ginI18n.MustGetMessage(context, "Frp Client Error"),
 			"ProxyExist":         ginI18n.MustGetMessage(context, "Proxy Exist"),
 			"ProxyNotExist":      ginI18n.MustGetMessage(context, "Proxy Not Exist"),
+			"ClientTips":         ginI18n.MustGetMessage(context, "Client Tips"),
 		})
 	}
 }
@@ -179,6 +180,7 @@ func (c *HandleController) MakeAddProxyFunc() func(context *gin.Context) {
 		}
 
 		delete(proxy, NameKey)
+		delete(proxy, OldNameKey)
 		clientProxies[name] = proxy
 
 		res := c.UpdateFrpcConfig()
@@ -380,6 +382,7 @@ func (c *HandleController) UpdateFrpcConfig() ProxyResponse {
 	}
 
 	c.parseResponse(&res, response)
+
 	if res.Success {
 		c.ReloadFrpcConfig(&res)
 	}
