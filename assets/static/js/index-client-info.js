@@ -16,7 +16,7 @@ var loadClientInfo = (function ($) {
             type: 'none'
         }).done(function (result) {
             if (result.success) {
-                renderCommonInfo(result.data);
+                renderClientInfo(result.data);
             } else {
                 layui.layer.msg(result.message);
             }
@@ -25,7 +25,7 @@ var loadClientInfo = (function ($) {
         });
     }
 
-    function renderCommonInfo(data) {
+    function renderClientInfo(data) {
         data.tcp_mux = i18n[data.tcp_mux];
         data.tls_enable = i18n[data.tls_enable];
         var html = layui.laytpl($('#clientInfoTemplate').html()).render(data);

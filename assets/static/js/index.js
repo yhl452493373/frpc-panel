@@ -1,4 +1,3 @@
-var http_port, https_port;
 (function ($) {
     $(function () {
         function init() {

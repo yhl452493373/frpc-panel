@@ -7,24 +7,14 @@ import (
 const (
 	Success int = iota
 	ParamError
-	SaveError
-	FrpServerError
+	FrpClientError
 	ProxyExist
 	ProxyNotExist
 )
 
 const (
-	ProxyAdd int = iota
-	ProxyUpdate
-	ProxyRemove
-)
-
-const (
-	nameKey    = "name"
-	oldNameKey = "_old_name"
-)
-
-const (
+	NameKey          = "name"
+	OldNameKey       = "_old_name"
 	SessionName      = "GOSESSION"
 	AuthName         = "_PANEL_AUTH"
 	LoginUrl         = "/login"

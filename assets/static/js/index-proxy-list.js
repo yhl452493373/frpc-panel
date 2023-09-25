@@ -233,7 +233,7 @@ var loadProxyInfo = (function ($) {
                 if (result.success) {
                     reloadTable();
                     layui.layer.close(index);
-                    layui.layer.msg('OperateSuccess', function (index) {
+                    layui.layer.msg(i18n['OperateSuccess'], function (index) {
                         layui.layer.close(index);
                     });
                 } else {
@@ -252,11 +252,11 @@ var loadProxyInfo = (function ($) {
      */
     function batchRemovePopup(data) {
         if (data.length === 0) {
-            layui.layer.msg('ShouldCheckProxy');
+            layui.layer.msg(i18n['ShouldCheckProxy']);
             return;
         }
-        layui.layer.confirm('ConfirmRemoveProxy', {
-            title: 'OperationConfirm',
+        layui.layer.confirm(i18n['ConfirmRemoveProxy'], {
+            title: i18n['OperationConfirm'],
             btn: [i18n['Confirm'], i18n['Cancel']]
         }, function (index) {
             var loading = layui.layer.load();
@@ -269,7 +269,7 @@ var loadProxyInfo = (function ($) {
                     if (result.success) {
                         reloadTable();
                         layui.layer.close(index);
-                        layui.layer.msg('OperateSuccess', function (index) {
+                        layui.layer.msg(i18n['OperateSuccess'], function (index) {
                             layui.layer.close(index);
                         });
                     } else {
@@ -295,19 +295,16 @@ var loadProxyInfo = (function ($) {
      * @param result
      */
     function errorMsg(result) {
-        layui.layer.msg(result.message);
-        // var reason = i18n['OtherError'];
-        // if (result.code === 1)
-        //     reason = i18n['ParamError'];
-        // else if (result.code === 2)
-        //     reason = i18n['SaveError'];
-        // else if (result.code === 3)
-        //     reason = i18n['FrpServerError'];
-        // else if (result.code === 4)
-        //     reason = i18n['ProxyExist'];
-        // else if (result.code === 5)
-        //     reason = i18n['ProxyNotExist'];
-        // layui.layer.msg(i18n['OperateFailed'] + ',' + reason)
+        var reason = i18n['OtherError'];
+        if (result.code === 1)
+            reason = i18n['ParamError'];
+        else if (result.code === 2)
+            reason = i18n['FrpClientError'];
+        else if (result.code === 3)
+            reason = i18n['ProxyExist'];
+        else if (result.code === 4)
+            reason = i18n['ProxyNotExist'];
+        layui.layer.msg(i18n['OperateFailed'] + ',' + reason)
     }
 
     return loadProxyInfo;

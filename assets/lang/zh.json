@@ -55,5 +55,15 @@
   "Local Port": "本地端口",
   "Operation": "操作",
   "Confirm": "确定",
-  "Cancel": "取消"
+  "Cancel": "取消",
+  "Token Invalid": "登录信息无效",
+  "Operate Success": "操作成功",
+  "Operate Failed": "操作失败",
+  "Should Check Proxy": "请选中需要操作的代理",
+  "Confirm Remove Proxy": "确定删除代理？",
+  "Operation Confirm": "操作确认",
+  "Param Error": "参数错误",
+  "Frp Client Error": "Frp客户端错误",
+  "Proxy Exist": "代理名称重复",
+  "Proxy Not Exist": "代理名称不存在"
 }

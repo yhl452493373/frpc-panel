@@ -55,5 +55,15 @@
   "Local Port": "Local Port",
   "Operation": "Operation",
   "Confirm": "Confirm",
-  "Cancel": "Cancel"
+  "Cancel": "Cancel",
+  "Token Invalid": "Token invalid",
+  "Operate Success": "Operate success",
+  "Operate Failed": "Operate failed",
+  "Should Check Proxy": "You should check at least one proxy",
+  "Confirm Remove Proxy": "Confirm to remove proxy ?",
+  "Operation Confirm": "Operation confirm",
+  "Param Error": "Param error",
+  "Frp Client Error": "Frp client error",
+  "Proxy Exist,": "Proxy name exist",
+  "Proxy Not Exist": "Proxy name not exist"
 }

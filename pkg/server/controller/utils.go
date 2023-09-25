@@ -128,7 +128,7 @@ func (c *HandleController) parseConfigure(content, proxyType string) (interface{
 			currentProxies[name] = section
 		}
 		clientProxies[name] = section
-		delete(clientProxies[name], nameKey)
+		delete(clientProxies[name], NameKey)
 	}
 
 	if proxyType == "none" {
