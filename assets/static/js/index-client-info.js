@@ -1,4 +1,4 @@
-var loadCommon = (function ($) {
+var loadClientInfo = (function ($) {
     var i18n = {};
 
     /**
@@ -6,7 +6,7 @@ var loadCommon = (function ($) {
      * @param lang {Map<string,string>} language json
      * @param title {string} page title
      */
-    function loadCommon(lang, title) {
+    function loadClientInfo(lang, title) {
         i18n = lang;
         $("#title").text(title);
         $('#content').empty();
@@ -26,9 +26,11 @@ var loadCommon = (function ($) {
     }
 
     function renderCommonInfo(data) {
-        var html = layui.laytpl($('#commonTemplate').html()).render(data);
+        data.tcp_mux = i18n[data.tcp_mux];
+        data.tls_enable = i18n[data.tls_enable];
+        var html = layui.laytpl($('#clientInfoTemplate').html()).render(data);
         $('#content').html(html);
     }
 
-    return loadCommon;
+    return loadClientInfo;
 })(layui.$);

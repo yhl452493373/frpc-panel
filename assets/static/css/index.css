@@ -118,25 +118,25 @@ section {
     font-size: 12px;
 }
 
-section.common-info {
+section.client-info {
     display: flex;
 }
 
-section.common-info .text-info {
+section.client-info .text-info {
     flex: 1;
 }
 
-section.common-info .text-info {
+section.client-info .text-info {
     padding: 0 20px;
 }
 
-section.common-info .text-row {
+section.client-info .text-row {
     display: flex;
     font-size: 14px;
     line-height: 40px;
 }
 
-section.common-info .text-row .text-col {
+section.client-info .text-row .text-col {
     flex: 1;
 }
 

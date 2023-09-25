@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="./static/css/index.css?v=${ .version }">
     <link rel="stylesheet" href="./static/css/color.css?v=${ .version }">
     <script src="./static/lib/layui/layui.js?v=${ .version }"></script>
-    <script src="./static/js/index-overview.js?v=${ .version }"></script>
-    <script src="./static/js/index-configure.js?v=${ .version }"></script>
+    <script src="./static/js/index-proxy-status.js?v=${ .version }"></script>
+    <script src="./static/js/index-client-info.js?v=${ .version }"></script>
     <script src="./static/js/index-proxy-list.js?v=${ .version }"></script>
     <script src="./static/js/index.js?v=${ .version }"></script>
 </head>
@@ -27,14 +27,14 @@
         <div class="layui-side-scroll">
             <ul class="layui-nav layui-nav-tree" lay-filter="leftNav" id="leftNav">
                 <li class="layui-nav-item layui-this">
-                    <a href="javascript:void(0)" id="overview">Overview</a>
+                    <a href="javascript:void(0)" id="clientInfo">${ .ClientInfo }</a>
                 </li>
-                <li class="layui-nav-item layui-nav-itemed" id="configure">
-                    <a class="" href="javascript:void(0)">Configure</a>
+                <li class="layui-nav-item">
+                    <a href="javascript:void(0)" id="proxiesStatus">${ .ProxiesStatus }</a>
+                </li>
+                <li class="layui-nav-item layui-nav-itemed" id="proxies">
+                    <a class="" href="javascript:void(0)">${ .Proxies }</a>
                     <dl class="layui-nav-child">
-                        <dd>
-                            <a href="javascript:void(0)" id="common">Common</a>
-                        </dd>
                         <dd>
                             <a href="javascript:void(0)" id="tcp">TCP</a>
                         </dd>
@@ -65,79 +65,79 @@
 </div>
 
 <!--代理列表-代理表格模板-->
-<script type="text/html" id="overviewTableTemplate">
-    <section class="overview">
-        <table id="overviewTable" lay-filter="overviewTable"></table>
+<script type="text/html" id="proxiesTableTemplate">
+    <section class="proxies">
+        <table id="proxiesTable" lay-filter="proxiesTable"></table>
     </section>
 </script>
 
 <!--配置信息模板-->
-<script type="text/html" id="commonTemplate">
-    <section class="common-info">
+<script type="text/html" id="clientInfoTemplate">
+    <section class="client-info">
         <div class="text-info">
             <div class="text-row">
-                <div class="text-col">server_addr</div>
-                <div class="text-col">{{= d.server_addr }}</div>
+                <div class="text-col">${ .ServerAddress }</div>
+                <div class="text-col">{{= d.server_addr || '-' }}</div>
             </div>
             <div class="text-row">
-                <div class="text-col">server_port</div>
-                <div class="text-col">{{= d.server_port }}</div>
+                <div class="text-col">${ .ServerPort }</div>
+                <div class="text-col">{{= d.server_port || '-' }}</div>
             </div>
             <div class="text-row">
-                <div class="text-col">protocol</div>
-                <div class="text-col">{{= d.protocol }}</div>
+                <div class="text-col">${ .Protocol }</div>
+                <div class="text-col">{{= d.protocol || '-' }}</div>
             </div>
             <div class="text-row">
-                <div class="text-col">tcp_mux</div>
-                <div class="text-col">{{= d.tcp_mux }}</div>
+                <div class="text-col">${ .TCPMux }</div>
+                <div class="text-col">{{= d.tcp_mux || '-' }}</div>
             </div>
             <div class="text-row">
-                <div class="text-col">user</div>
-                <div class="text-col">{{= d.user }}</div>
+                <div class="text-col">${ .User }</div>
+                <div class="text-col">{{= d.user || '-' }}</div>
             </div>
             <div class="text-row">
-                <div class="text-col">meta_token</div>
-                <div class="text-col">{{= d.metas.token }}</div>
+                <div class="text-col">${ .UserToken }</div>
+                <div class="text-col">{{= d.metas.token || '-' }}</div>
             </div>
             <div class="text-row">
-                <div class="text-col">admin_addr</div>
-                <div class="text-col">{{= d.admin_addr }}</div>
+                <div class="text-col">${ .AdminAddress }</div>
+                <div class="text-col">{{= d.admin_addr || '-' }}</div>
             </div>
             <div class="text-row">
-                <div class="text-col">admin_port</div>
-                <div class="text-col">{{= d.admin_port }}</div>
+                <div class="text-col">${ .AdminPort }</div>
+                <div class="text-col">{{= d.admin_port || '-' }}</div>
             </div>
             <div class="text-row">
-                <div class="text-col">admin_pwd</div>
-                <div class="text-col">{{= d.admin_pwd }}</div>
+                <div class="text-col">${ .AdminUser }</div>
+                <div class="text-col">{{= d.admin_user || '-' }}</div>
             </div>
             <div class="text-row">
-                <div class="text-col">admin_user</div>
-                <div class="text-col">{{= d.admin_user }}</div>
+                <div class="text-col">${ .AdminPwd }</div>
+                <div class="text-col">{{= d.admin_pwd || '-' }}</div>
             </div>
             <div class="text-row">
-                <div class="text-col">heartbeat_interval</div>
-                <div class="text-col">{{= d.heartbeat_interval }}</div>
+                <div class="text-col">${ .HeartbeatInterval }</div>
+                <div class="text-col">{{= d.heartbeat_interval || '-' }}</div>
             </div>
             <div class="text-row">
-                <div class="text-col">heartbeat_timeout</div>
-                <div class="text-col">{{= d.heartbeat_timeout }}</div>
+                <div class="text-col">${ .HeartbeatTimeout }</div>
+                <div class="text-col">{{= d.heartbeat_timeout || '-' }}</div>
             </div>
             <div class="text-row">
-                <div class="text-col">tls_enable</div>
-                <div class="text-col">{{= d.tls_enable }}</div>
+                <div class="text-col">${ .TLSEnable }</div>
+                <div class="text-col">{{= d.tls_enable || '-' }}</div>
             </div>
             <div class="text-row">
-                <div class="text-col">tls_key_file</div>
-                <div class="text-col">{{= d.tls_key_file }}</div>
+                <div class="text-col">${ .TLSKeyFile }</div>
+                <div class="text-col">{{= d.tls_key_file || '-' }}</div>
             </div>
             <div class="text-row">
-                <div class="text-col">tls_cert_file</div>
-                <div class="text-col">{{= d.tls_cert_file }}</div>
+                <div class="text-col">${ .TLSCertFile }</div>
+                <div class="text-col">{{= d.tls_cert_file || '-' }}</div>
             </div>
             <div class="text-row">
-                <div class="text-col">tls_trusted_ca_file</div>
-                <div class="text-col">{{= d.tls_trusted_ca_file }}</div>
+                <div class="text-col">${ .TLSTrustedCAFile }</div>
+                <div class="text-col">{{= d.tls_trusted_ca_file || '-' }}</div>
             </div>
         </div>
     </section>
@@ -148,59 +148,55 @@
     <form class="layui-form" id="addProxyForm" lay-filter="addProxyForm">
         <div class="layui-tab layui-tab-brief">
             <ul class="layui-tab-title">
-                <li class="layui-this">Basic</li>
-                <li>Extra</li>
+                <li class="layui-this">${ .Basic }</li>
+                <li>${ .Extra }</li>
             </ul>
             <div class="layui-tab-content">
+                <input type="hidden" name="type">
+                <input type="hidden" name="${ .oldNameKey }" id="oldName">
                 <div class="layui-tab-item layui-show">
                     <div class="layui-form-item">
-                        <label class="layui-form-label">ProxyName</label>
+                        <label class="layui-form-label">${ .ProxyName }</label>
                         <div class="layui-input-block">
-                            <input type="text" name="name" placeholder="ProxyName" autocomplete="off"
+                            <input type="text" name="name" placeholder="${ .ProxyName }" autocomplete="off"
                                    class="layui-input"/>
                         </div>
                     </div>
                     <div class="layui-form-item">
-                        <label class="layui-form-label">ProxyType</label>
+                        <label class="layui-form-label">${ .LocalIp }</label>
                         <div class="layui-input-block">
-                            <input type="text" name="type" readonly class="layui-input">
-                        </div>
-                    </div>
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">LocalIp</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="local_ip" placeholder="LocalIp" autocomplete="off"
+                            <input type="text" name="local_ip" placeholder="${ .LocalIp }" autocomplete="off"
                                    class="layui-input"/>
                         </div>
                     </div>
                     <div class="layui-form-item">
-                        <label class="layui-form-label">LocalPort</label>
+                        <label class="layui-form-label">${ .LocalPort }</label>
                         <div class="layui-input-block">
-                            <input type="text" name="local_port" placeholder="LocalPort" autocomplete="off"
+                            <input type="text" name="local_port" placeholder="${ .LocalPort }" autocomplete="off"
                                    class="layui-input"/>
                         </div>
                     </div>
                     {{# if (d.type === 'http' || d.type === 'https') { }}
                     <div class="layui-form-item http https">
-                        <label class="layui-form-label">CustomizeDomains</label>
+                        <label class="layui-form-label">${ .CustomizeDomains }</label>
                         <div class="layui-input-block">
-                            <textarea name="custom_domains" placeholder="CustomDomains" autocomplete="off"
+                            <textarea name="custom_domains" placeholder="${ .CustomizeDomains }" autocomplete="off"
                                       class="layui-textarea"></textarea>
                         </div>
                     </div>
                     <div class="layui-form-item layui-form-text http https">
-                        <label class="layui-form-label">Subdomain</label>
+                        <label class="layui-form-label">${ .Subdomain }</label>
                         <div class="layui-input-block">
-                            <textarea name="sub_domain" placeholder="Subdomain" autocomplete="off"
+                            <textarea name="sub_domain" placeholder="${ .Subdomain }" autocomplete="off"
                                       class="layui-textarea"></textarea>
                         </div>
                     </div>
                     {{# } }}
                     {{# if (d.type === 'tcp' || d.type === 'udp') { }}
                     <div class="layui-form-item tcp udp">
-                        <label class="layui-form-label">RemotePort</label>
+                        <label class="layui-form-label">${ .RemotePort }</label>
                         <div class="layui-input-block">
-                            <input type="text" name="remote_port" placeholder="RemotePort" autocomplete="off"
+                            <input type="text" name="remote_port" placeholder="${ .RemotePort }" autocomplete="off"
                                    class="layui-input"/>
                         </div>
                     </div>
@@ -208,17 +204,17 @@
                     <div class="layui-row">
                         <div class="layui-col-xs6">
                             <div class="layui-form-item">
-                                <label class="layui-form-label">UseEncryption</label>
+                                <label class="layui-form-label">${ .UseEncryption }</label>
                                 <div class="layui-input-block">
-                                    <input type="checkbox" name="use_encryption" value="true" title="YES">
+                                    <input type="checkbox" name="use_encryption" value="true" title="${ .true }">
                                 </div>
                             </div>
                         </div>
                         <div class="layui-col-xs6">
                             <div class="layui-form-item">
-                                <label class="layui-form-label">UseCompression</label>
+                                <label class="layui-form-label">${ .UseCompression }</label>
                                 <div class="layui-input-block">
-                                    <input type="checkbox" name="use_compression" value="true" title="YES">
+                                    <input type="checkbox" name="use_compression" value="true" title="${ .true }">
                                 </div>
                             </div>
                         </div>
@@ -227,24 +223,24 @@
                 <div class="layui-tab-item extra-param-tab-item">
                     <div class="layui-form-item">
                         <div class="layui-input-inline">
-                            <input type="text" class="layui-input" placeholder="paramName">
+                            <input type="text" class="layui-input" placeholder="${ .ParamName }">
                         </div>
                         <div class="layui-form-mid">=</div>
                         <div class="layui-input-inline">
                             <input type="text" class="layui-input" lay-filter="addition"
-                                   lay-affix="addition" placeholder="paramValue">
+                                   lay-affix="addition" placeholder="${ .ParamValue }">
                         </div>
                     </div>
                     {{# layui.each(d.extraData, function(index, extra){ }}
                     <div class="layui-form-item extra-param-item">
                         <div class="layui-input-inline">
                             <input type="text" value="{{= extra.name}}" class="layui-input"
-                                   placeholder="paramName">
+                                   placeholder="${ .ParamName }">
                         </div>
                         <div class="layui-form-mid">=</div>
                         <div class="layui-input-inline">
                             <input type="text" value="{{= extra.value }}" class="layui-input"
-                                   lay-filter="subtraction" lay-affix="subtraction" placeholder="paramValue">
+                                   lay-filter="subtraction" lay-affix="subtraction" placeholder="${ .ParamValue }">
                         </div>
                     </div>
                     {{# }); }}
@@ -257,12 +253,12 @@
 <script type="text/html" id="extraParamAddedTemplate">
     <div class="layui-form-item extra-param-item">
         <div class="layui-input-inline">
-            <input type="text" value="{{= d.name}}" class="layui-input" placeholder="paramName">
+            <input type="text" value="{{= d.name}}" class="layui-input" placeholder="${ .ParamName }">
         </div>
         <div class="layui-form-mid">=</div>
         <div class="layui-input-inline">
             <input type="text" value="{{= d.value }}" class="layui-input"
-                   lay-filter="subtraction" lay-affix="subtraction" placeholder="paramValue">
+                   lay-filter="subtraction" lay-affix="subtraction" placeholder="${ .ParamValue }">
         </div>
     </div>
 </script>
@@ -277,16 +273,16 @@
 <!--代理列表-表格工具条按钮模板-->
 <script type="text/html" id="proxyListToolbarTemplate">
     <div class="layui-btn-container">
-        <button class="layui-btn layui-btn-sm" lay-event="add">NewProxy</button>
-        <button class="layui-btn layui-btn-sm" lay-event="remove">RemoveProxy</button>
+        <button class="layui-btn layui-btn-sm" lay-event="add">${ .NewProxy }</button>
+        <button class="layui-btn layui-btn-sm" lay-event="remove">${ .RemoveProxy }</button>
     </div>
 </script>
 
 <!--代理列表-操作按钮模板-->
 <script type="text/html" id="proxyListOperationTemplate">
     <div class="layui-clear-space">
-        <a class="layui-btn layui-btn-xs" lay-event="update">Update</a>
-        <a class="layui-btn layui-btn-xs" lay-event="remove">Remove</a>
+        <a class="layui-btn layui-btn-xs" lay-event="update">${ .Update }</a>
+        <a class="layui-btn layui-btn-xs" lay-event="remove">${ .Remove }</a>
     </div>
 </script>
 </body>

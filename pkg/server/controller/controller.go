@@ -2,16 +2,12 @@ package controller
 
 import (
 	"bytes"
-	"crypto/tls"
 	"fmt"
 	ginI18n "github.com/gin-contrib/i18n"
 	"github.com/gin-gonic/gin"
 	"github.com/vaughan0/go-ini"
-	"io"
 	"log"
 	"net/http"
-	"strconv"
-	"strings"
 )
 
 func (c *HandleController) MakeLoginFunc() func(context *gin.Context) {
@@ -60,9 +56,46 @@ func (c *HandleController) MakeLogoutFunc() func(context *gin.Context) {
 func (c *HandleController) MakeIndexFunc() func(context *gin.Context) {
 	return func(context *gin.Context) {
 		context.HTML(http.StatusOK, "index.html", gin.H{
-			"version":   c.Version,
-			"FrpcPanel": ginI18n.MustGetMessage(context, "Frpc Panel"),
-			"showExit":  trimString(c.CommonInfo.AdminUser) != "" && trimString(c.CommonInfo.AdminPwd) != "",
+			"version":           c.Version,
+			"oldNameKey":        oldNameKey,
+			"showExit":          trimString(c.CommonInfo.AdminUser) != "" && trimString(c.CommonInfo.AdminPwd) != "",
+			"FrpcPanel":         ginI18n.MustGetMessage(context, "Frpc Panel"),
+			"ClientInfo":        ginI18n.MustGetMessage(context, "Client Info"),
+			"ProxiesStatus":     ginI18n.MustGetMessage(context, "Proxies Status"),
+			"Proxies":           ginI18n.MustGetMessage(context, "Proxies"),
+			"ServerAddress":     ginI18n.MustGetMessage(context, "Server Address"),
+			"ServerPort":        ginI18n.MustGetMessage(context, "Server Port"),
+			"Protocol":          ginI18n.MustGetMessage(context, "Protocol"),
+			"TCPMux":            ginI18n.MustGetMessage(context, "TCP Mux"),
+			"User":              ginI18n.MustGetMessage(context, "User"),
+			"UserToken":         ginI18n.MustGetMessage(context, "User Token"),
+			"AdminAddress":      ginI18n.MustGetMessage(context, "Admin Address"),
+			"AdminPort":         ginI18n.MustGetMessage(context, "Admin Port"),
+			"AdminUser":         ginI18n.MustGetMessage(context, "Admin User"),
+			"AdminPwd":          ginI18n.MustGetMessage(context, "Admin Pwd"),
+			"HeartbeatInterval": ginI18n.MustGetMessage(context, "Heartbeat Interval"),
+			"HeartbeatTimeout":  ginI18n.MustGetMessage(context, "Heartbeat Timeout"),
+			"TLSEnable":         ginI18n.MustGetMessage(context, "TLS Enable"),
+			"TLSKeyFile":        ginI18n.MustGetMessage(context, "TLS Key File"),
+			"TLSCertFile":       ginI18n.MustGetMessage(context, "TLS Cert File"),
+			"TLSTrustedCAFile":  ginI18n.MustGetMessage(context, "TLS Trusted CA File"),
+			"NewProxy":          ginI18n.MustGetMessage(context, "New Proxy"),
+			"RemoveProxy":       ginI18n.MustGetMessage(context, "Remove Proxy"),
+			"Update":            ginI18n.MustGetMessage(context, "Update"),
+			"Remove":            ginI18n.MustGetMessage(context, "Remove"),
+			"Basic":             ginI18n.MustGetMessage(context, "Basic"),
+			"Extra":             ginI18n.MustGetMessage(context, "Extra"),
+			"ProxyName":         ginI18n.MustGetMessage(context, "Proxy Name"),
+			"LocalIp":           ginI18n.MustGetMessage(context, "Local Ip"),
+			"LocalPort":         ginI18n.MustGetMessage(context, "Local Port"),
+			"RemotePort":        ginI18n.MustGetMessage(context, "Remote Port"),
+			"CustomizeDomains":  ginI18n.MustGetMessage(context, "Customize Domains"),
+			"Subdomain":         ginI18n.MustGetMessage(context, "Subdomain"),
+			"UseEncryption":     ginI18n.MustGetMessage(context, "Use Encryption"),
+			"true":              ginI18n.MustGetMessage(context, "true"),
+			"UseCompression":    ginI18n.MustGetMessage(context, "Use Compression"),
+			"ParamName":         ginI18n.MustGetMessage(context, "Param Name"),
+			"ParamValue":        ginI18n.MustGetMessage(context, "Param Value"),
 		})
 	}
 }
@@ -70,7 +103,22 @@ func (c *HandleController) MakeIndexFunc() func(context *gin.Context) {
 func (c *HandleController) MakeLangFunc() func(context *gin.Context) {
 	return func(context *gin.Context) {
 		context.JSON(http.StatusOK, gin.H{
-			"EmptyData": ginI18n.MustGetMessage(context, "Empty data"),
+			"EmptyData":     ginI18n.MustGetMessage(context, "Empty data"),
+			"true":          ginI18n.MustGetMessage(context, "true"),
+			"false":         ginI18n.MustGetMessage(context, "false"),
+			"Name":          ginI18n.MustGetMessage(context, "Name"),
+			"Type":          ginI18n.MustGetMessage(context, "Type"),
+			"LocalAddress":  ginI18n.MustGetMessage(context, "Local Address"),
+			"Plugin":        ginI18n.MustGetMessage(context, "Plugin"),
+			"RemoteAddress": ginI18n.MustGetMessage(context, "Remote Address"),
+			"Status":        ginI18n.MustGetMessage(context, "Status"),
+			"Info":          ginI18n.MustGetMessage(context, "Info"),
+			"running":       ginI18n.MustGetMessage(context, "running"),
+			"LocalIp":       ginI18n.MustGetMessage(context, "Local Ip"),
+			"LocalPort":     ginI18n.MustGetMessage(context, "Local Port"),
+			"Operation":     ginI18n.MustGetMessage(context, "Operation"),
+			"Confirm":       ginI18n.MustGetMessage(context, "Confirm"),
+			"Cancel":        ginI18n.MustGetMessage(context, "Cancel"),
 		})
 	}
 }
@@ -95,7 +143,7 @@ func (c *HandleController) MakeAddProxyFunc() func(context *gin.Context) {
 			return
 		}
 
-		name := proxy["name"]
+		name := proxy[nameKey]
 
 		if trimString(name) == "" {
 			response.Success = false
@@ -115,10 +163,10 @@ func (c *HandleController) MakeAddProxyFunc() func(context *gin.Context) {
 			return
 		}
 
-		delete(proxy, "name")
+		delete(proxy, nameKey)
 		clientProxies[name] = proxy
 
-		res := c.ReloadFrpc()
+		res := c.UpdateFrpcConfig()
 		if !res.Success {
 			response.Success = false
 			response.Code = SaveError
@@ -152,8 +200,8 @@ func (c *HandleController) MakeUpdateProxyFunc() func(context *gin.Context) {
 			return
 		}
 
-		oldName := proxy["oldName"]
-		name := proxy["name"]
+		oldName := proxy[oldNameKey]
+		name := proxy[nameKey]
 
 		if trimString(oldName) == "" || trimString(name) == "" {
 			response.Success = false
@@ -175,12 +223,12 @@ func (c *HandleController) MakeUpdateProxyFunc() func(context *gin.Context) {
 			}
 		}
 
-		delete(proxy, "name")
-		delete(proxy, "oldName")
+		delete(proxy, nameKey)
+		delete(proxy, oldNameKey)
 		delete(clientProxies, oldName)
 		clientProxies[name] = proxy
 
-		res := c.ReloadFrpc()
+		res := c.UpdateFrpcConfig()
 		if !res.Success {
 			response.Success = false
 			response.Code = SaveError
@@ -196,7 +244,7 @@ func (c *HandleController) MakeUpdateProxyFunc() func(context *gin.Context) {
 
 func (c *HandleController) MakeRemoveProxyFunc() func(context *gin.Context) {
 	return func(context *gin.Context) {
-		proxy := make(map[string]interface{})
+		var proxies []ini.Section
 
 		response := OperationResponse{
 			Success: true,
@@ -204,21 +252,50 @@ func (c *HandleController) MakeRemoveProxyFunc() func(context *gin.Context) {
 			Message: "proxy remove success",
 		}
 
-		err := context.BindJSON(&proxy)
+		err := context.BindJSON(&proxies)
 		if err != nil {
 			response.Success = false
 			response.Code = ParamError
-			response.Message = fmt.Sprintf("user remove failed, param error : %v", err)
+			response.Message = fmt.Sprintf("proxy remove failed, param error : %v", err)
 			log.Printf(response.Message)
 			context.JSON(http.StatusOK, &response)
 			return
 		}
 
-		res := c.ReloadFrpc()
+		tempProxyNames := make([]string, len(proxies))
+		for index, proxy := range proxies {
+			name := proxy[nameKey]
+
+			if trimString(name) == "" {
+				response.Success = false
+				response.Code = ParamError
+				response.Message = fmt.Sprintf("proxy remove failed, proxy %v name invalid", name)
+				log.Printf(response.Message)
+				context.JSON(http.StatusOK, &response)
+				return
+			}
+
+			if _, exist := clientProxies[name]; !exist {
+				response.Success = false
+				response.Code = ProxyExist
+				response.Message = fmt.Sprintf("proxy remove failed, proxy %v not exist", name)
+				log.Printf(response.Message)
+				context.JSON(http.StatusOK, &response)
+				return
+			}
+
+			tempProxyNames[index] = name
+		}
+
+		for _, name := range tempProxyNames {
+			delete(clientProxies, name)
+		}
+
+		res := c.UpdateFrpcConfig()
 		if !res.Success {
 			response.Success = false
 			response.Code = SaveError
-			response.Message = fmt.Sprintf("user update failed, error : %v", res.Message)
+			response.Message = fmt.Sprintf("proxy remvoe failed, error : %v", res.Message)
 			log.Printf(response.Message)
 			context.JSON(http.StatusOK, &response)
 			return
@@ -230,37 +307,11 @@ func (c *HandleController) MakeRemoveProxyFunc() func(context *gin.Context) {
 
 func (c *HandleController) MakeProxyFunc() func(context *gin.Context) {
 	return func(context *gin.Context) {
-		var client *http.Client
-		var protocol string
-
-		if c.CommonInfo.DashboardTls {
-			client = &http.Client{
-				Transport: &http.Transport{
-					TLSClientConfig: &tls.Config{
-						InsecureSkipVerify: true,
-					},
-				},
-			}
-			protocol = "https://"
-		} else {
-			client = http.DefaultClient
-			protocol = "http://"
-		}
-
 		res := ProxyResponse{}
-		host := c.CommonInfo.DashboardAddr
-		port := c.CommonInfo.DashboardPort
 		serverApi := context.Param("serverApi")
-		requestUrl := protocol + host + ":" + strconv.Itoa(port) + serverApi
+		requestUrl := c.buildRequestUrl(serverApi)
 		request, _ := http.NewRequest("GET", requestUrl, nil)
-		username := c.CommonInfo.DashboardUser
-		password := c.CommonInfo.DashboardPwd
-		if trimString(username) != "" && trimString(password) != "" {
-			request.SetBasicAuth(username, password)
-			log.Printf("Proxy to %s", requestUrl)
-		}
-
-		response, err := client.Do(request)
+		response, err := c.getClientResponse(request, c.buildClient())
 
 		if err != nil {
 			res.Code = FrpServerError
@@ -271,27 +322,7 @@ func (c *HandleController) MakeProxyFunc() func(context *gin.Context) {
 			return
 		}
 
-		res.Code = response.StatusCode
-		body, err := io.ReadAll(response.Body)
-
-		if err != nil {
-			res.Success = false
-			res.Message = err.Error()
-		} else {
-			if res.Code == http.StatusOK {
-				res.Success = true
-				res.Data = string(body)
-				res.Message = fmt.Sprintf("Proxy to %s success", requestUrl)
-			} else {
-				res.Success = false
-				if res.Code == http.StatusNotFound {
-					res.Message = fmt.Sprintf("Proxy to %s error: url not found", requestUrl)
-				} else {
-					res.Message = fmt.Sprintf("Proxy to %s error: %s", requestUrl, string(body))
-				}
-			}
-		}
-		log.Printf(res.Message)
+		c.parseResponse(&res, response)
 
 		if serverApi == "/api/config" {
 			proxyType, _ := context.GetQuery("type")
@@ -310,37 +341,11 @@ func (c *HandleController) MakeProxyFunc() func(context *gin.Context) {
 	}
 }
 
-func (c *HandleController) ReloadFrpc() ProxyResponse {
-	var client *http.Client
-	var protocol string
-
-	if c.CommonInfo.DashboardTls {
-		client = &http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: true,
-				},
-			},
-		}
-		protocol = "https://"
-	} else {
-		client = http.DefaultClient
-		protocol = "http://"
-	}
-
+func (c *HandleController) UpdateFrpcConfig() ProxyResponse {
 	res := ProxyResponse{}
-	host := c.CommonInfo.DashboardAddr
-	port := c.CommonInfo.DashboardPort
-	serverApi := "/api/config"
-	requestUrl := protocol + host + ":" + strconv.Itoa(port) + serverApi
+	requestUrl := c.buildRequestUrl("/api/config")
 	request, _ := http.NewRequest("PUT", requestUrl, bytes.NewReader(serializeSectionsToString()))
-	username := c.CommonInfo.DashboardUser
-	password := c.CommonInfo.DashboardPwd
-	if trimString(username) != "" && trimString(password) != "" {
-		request.SetBasicAuth(username, password)
-	}
-
-	response, err := client.Do(request)
+	response, err := c.getClientResponse(request, c.buildClient())
 
 	if err != nil {
 		res.Code = FrpServerError
@@ -350,45 +355,25 @@ func (c *HandleController) ReloadFrpc() ProxyResponse {
 		return res
 	}
 
-	res.Code = response.StatusCode
-	body, err := io.ReadAll(response.Body)
-
-	if err != nil {
-		res.Success = false
-		res.Message = err.Error()
-	} else {
-		if res.Code == http.StatusOK {
-			res.Success = true
-			res.Data = string(body)
-			res.Message = fmt.Sprintf("Proxy to %s success", requestUrl)
-		} else {
-			res.Success = false
-			if res.Code == http.StatusNotFound {
-				res.Message = fmt.Sprintf("Proxy to %s error: url not found", requestUrl)
-			} else {
-				res.Message = fmt.Sprintf("Proxy to %s error: %s", requestUrl, string(body))
-			}
-		}
+	c.parseResponse(&res, response)
+	if res.Success {
+		c.ReloadFrpcConfig(&res)
 	}
-	log.Printf(res.Message)
 	return res
 }
 
-func serializeSectionsToString() []byte {
-	var build strings.Builder
-	build.WriteString("[common]\n")
-	for key, value := range clientCommon {
-		build.WriteString(fmt.Sprintf("%s = %s\n", key, value))
-	}
-	build.WriteString("\n")
+func (c *HandleController) ReloadFrpcConfig(res *ProxyResponse) {
+	requestUrl := c.buildRequestUrl("/api/reload")
+	request, _ := http.NewRequest("GET", requestUrl, nil)
+	response, err := c.getClientResponse(request, c.buildClient())
 
-	for name, section := range clientProxies {
-		build.WriteString(fmt.Sprintf("[%s]\n", name))
-		for key, value := range section {
-			build.WriteString(fmt.Sprintf("%s = %s\n", key, value))
-		}
-		build.WriteString("\n")
+	if err != nil {
+		res.Code = FrpServerError
+		res.Success = false
+		res.Message = err.Error()
+		log.Print(err)
+		return
 	}
 
-	return []byte(build.String())
+	c.parseResponse(res, response)
 }

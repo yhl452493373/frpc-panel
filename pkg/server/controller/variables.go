@@ -20,6 +20,11 @@ const (
 )
 
 const (
+	nameKey    = "name"
+	oldNameKey = "_old_name"
+)
+
+const (
 	SessionName      = "GOSESSION"
 	AuthName         = "_PANEL_AUTH"
 	LoginUrl         = "/login"
