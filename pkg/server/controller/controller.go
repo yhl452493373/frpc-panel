@@ -179,8 +179,6 @@ func (c *HandleController) MakeAddProxyFunc() func(context *gin.Context) {
 			return
 		}
 
-		delete(proxy, NameKey)
-		delete(proxy, OldNameKey)
 		clientProxies[name] = proxy
 
 		res := c.UpdateFrpcConfig()
@@ -249,8 +247,6 @@ func (c *HandleController) MakeUpdateProxyFunc() func(context *gin.Context) {
 			}
 		}
 
-		delete(proxy, NameKey)
-		delete(proxy, OldNameKey)
 		delete(clientProxies, oldName)
 		clientProxies[name] = proxy
 
@@ -369,8 +365,9 @@ func (c *HandleController) MakeProxyFunc() func(context *gin.Context) {
 
 func (c *HandleController) UpdateFrpcConfig() ProxyResponse {
 	res := ProxyResponse{}
+
 	requestUrl := c.buildRequestUrl("/api/config")
-	request, _ := http.NewRequest("PUT", requestUrl, bytes.NewReader(serializeSectionsToString()))
+	request, _ := http.NewRequest("PUT", requestUrl, bytes.NewReader(serializeSections()))
 	response, err := c.getClientResponse(request, c.buildClient())
 
 	if err != nil {

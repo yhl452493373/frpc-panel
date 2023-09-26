@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -16,17 +17,36 @@ func trimString(str string) string {
 	return strings.TrimSpace(str)
 }
 
-func serializeSectionsToString() []byte {
+func sortSectionKeys(object ini.Section) []string {
+	var keys []string
+	for key := range object {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+func serializeSections() []byte {
 	var build strings.Builder
 	build.WriteString("[common]\n")
-	for key, value := range clientCommon {
-		build.WriteString(fmt.Sprintf("%s = %s\n", key, value))
+
+	for _, key := range sortSectionKeys(clientCommon) {
+		build.WriteString(fmt.Sprintf("%s = %s\n", key, clientCommon[key]))
 	}
 	build.WriteString("\n")
 
-	for name, section := range clientProxies {
+	sections := Sections{clientProxies}
+
+	for _, sectionInfo := range sections.sort() {
+		name := sectionInfo.Name
 		build.WriteString(fmt.Sprintf("[%s]\n", name))
-		for key, value := range section {
+		section := sectionInfo.Section
+
+		for _, key := range sortSectionKeys(section) {
+			value := section[key]
+			if key == NameKey || key == OldNameKey || trimString(value) == "" {
+				continue
+			}
 			build.WriteString(fmt.Sprintf("%s = %s\n", key, value))
 		}
 		build.WriteString("\n")

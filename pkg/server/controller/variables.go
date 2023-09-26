@@ -2,6 +2,8 @@ package controller
 
 import (
 	"github.com/vaughan0/go-ini"
+	"sort"
+	"strings"
 )
 
 const (
@@ -39,6 +41,10 @@ type HTTPError struct {
 	Err  error
 }
 
+func (e *HTTPError) Error() string {
+	return e.Err.Error()
+}
+
 type Common struct {
 	Common CommonInfo
 }
@@ -74,6 +80,33 @@ type ClientProxies struct {
 	Proxy ini.Section `json:"proxy"`
 }
 
-func (e *HTTPError) Error() string {
-	return e.Err.Error()
+type SectionInfo struct {
+	Name    string
+	Section ini.Section
+}
+
+type Sections struct {
+	sections map[string]ini.Section
+}
+
+func (s *Sections) sort() []SectionInfo {
+	sectionInfos := make([]SectionInfo, 0)
+
+	for key, value := range s.sections {
+		sectionInfos = append(sectionInfos, SectionInfo{Name: key, Section: value})
+	}
+
+	sort.Slice(sectionInfos, func(i, j int) bool {
+		typeCompare := strings.Compare(sectionInfos[i].Section["type"], sectionInfos[j].Section["type"])
+		if typeCompare == -1 {
+			return true
+		} else if typeCompare == 0 {
+			nameCompare := strings.Compare(sectionInfos[i].Name, sectionInfos[j].Name)
+			return nameCompare == -1
+		} else {
+			return false
+		}
+	})
+
+	return sectionInfos
 }
