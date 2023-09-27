@@ -66,6 +66,9 @@ func (c *HandleController) buildRequestUrl(serverApi string) string {
 
 	host := c.CommonInfo.DashboardAddr
 	port := c.CommonInfo.DashboardPort
+
+	host, _ = strings.CutPrefix(host, protocol)
+
 	requestUrl := protocol + host + ":" + strconv.Itoa(port) + serverApi
 
 	return requestUrl
