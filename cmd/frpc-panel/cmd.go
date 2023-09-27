@@ -76,7 +76,7 @@ func parseConfigFile(configFile, tokensFile string) (controller.HandleController
 		log.Fatalf("decode config file %v error: %v", configFile, err)
 	}
 
-	common.Common.DashboardTls = strings.HasPrefix("https://", strings.ToLower(common.Common.DashboardAddr))
+	common.Common.DashboardTls = strings.HasPrefix(strings.ToLower(common.Common.DashboardAddr), "https://")
 
 	tls := server.TLS{
 		Enable:   common.Common.TlsMode,
