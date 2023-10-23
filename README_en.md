@@ -1,4 +1,4 @@
-# frpc-panel
+# frpc-panel(Support FRP 0.51.3)
 
 [中文文档](README.md) | [README](README_en.md)
 
