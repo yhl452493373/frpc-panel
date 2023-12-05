@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/fatedier/frp/pkg/config"
+	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/vaughan0/go-ini"
 	"io"
 	"log"
@@ -133,32 +134,10 @@ func (c *HandleController) parseResponse(res *ProxyResponse, response *http.Resp
 }
 
 func (c *HandleController) parseConfigure(content, proxyType string) (interface{}, error) {
-	currentProxies := make(map[string]ini.Section)
-	clientProxies = make(map[string]ini.Section)
-	common, err := config.UnmarshalClientConfFromIni(content)
+	clientConfig := v1.ClientConfig{}
+	err := config.LoadConfigure([]byte(content), &clientConfig)
 	if err != nil {
 		return nil, err
 	}
-	cfg, err := ini.Load(strings.NewReader(content))
-	if err != nil {
-		return nil, err
-	}
-
-	for name, section := range cfg {
-		if name == "common" {
-			clientCommon = section
-			continue
-		}
-		if strings.ToLower(section["type"]) == strings.ToLower(proxyType) {
-			currentProxies[name] = section
-		}
-		clientProxies[name] = section
-		delete(clientProxies[name], NameKey)
-	}
-
-	if proxyType == "none" {
-		return common, nil
-	}
-
-	return currentProxies, nil
+	return clientConfig, nil
 }
