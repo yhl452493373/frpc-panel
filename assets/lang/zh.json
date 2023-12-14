@@ -51,6 +51,8 @@
   "Status": "状态",
   "Info": "消息",
   "running": "运行中",
+  "start error": "错误",
+  "new": "新连接",
   "Local Ip": "本地IP",
   "Local Port": "本地端口",
   "Operation": "操作",

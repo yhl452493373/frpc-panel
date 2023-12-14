@@ -114,6 +114,8 @@ func (c *HandleController) MakeLangFunc() func(context *gin.Context) {
 			"Status":             ginI18n.MustGetMessage(context, "Status"),
 			"Info":               ginI18n.MustGetMessage(context, "Info"),
 			"running":            ginI18n.MustGetMessage(context, "running"),
+			"start error":        ginI18n.MustGetMessage(context, "start error"),
+			"new":                ginI18n.MustGetMessage(context, "new"),
 			"LocalIp":            ginI18n.MustGetMessage(context, "Local Ip"),
 			"LocalPort":          ginI18n.MustGetMessage(context, "Local Port"),
 			"RemotePort":         ginI18n.MustGetMessage(context, "Remote Port"),

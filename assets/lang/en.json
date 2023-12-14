@@ -51,6 +51,8 @@
   "Status": "Status",
   "Info": "Info",
   "running": "running",
+  "start error": "start error",
+  "new": "new",
   "Local Ip": "Local Ip",
   "Local Port": "Local Port",
   "Operation": "Operation",
