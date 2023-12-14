@@ -36,48 +36,46 @@ var loadProxyInfo = (function ($) {
 
     /**
      * render proxy list table
-     * @param data {Map<string,Map<string,string>>} proxy data
+     * @param data {[Map<string,string>]} proxy data
      */
     function renderProxyListTable(data) {
-        var dataList = [];
-        for (var key in data) {
-            var temp = data[key];
-            temp.name = key;
-            temp.local_ip = temp.local_ip || '-';
-            temp.local_port = temp.local_port || '-';
-            temp.use_encryption = temp.use_encryption || false;
-            temp.use_compression = temp.use_compression || false;
+        data.forEach(function (temp){
+            temp.name = temp.name || '-';
+            temp.localIP = temp.localIP || '-';
+            temp.localPort = temp.localPort || '-';
+            temp.transport = temp.transport || {};
+            temp.transport.useEncryption = temp.transport.useEncryption || false;
+            temp.transport.useCompression = temp.transport.useCompression || false;
             if (currentProxyType === 'http' || currentProxyType === 'https') {
-                temp.custom_domains = temp.custom_domains || '-';
+                temp.customDomains = temp.customDomains || '-';
                 temp.subdomain = temp.subdomain || '-';
             }
-            dataList.push(temp);
-        }
+        });
 
         var $section = $('#content > section');
         var cols = [
             {type: 'checkbox'},
             {field: 'name', title: i18n['Name'], sort: true},
             {field: 'type', title: i18n['Type'], width: 110, sort: true},
-            {field: 'local_ip', title: i18n['LocalIp'], width: 150, sort: true},
-            {field: 'local_port', title: i18n['LocalPort'], width: 120, sort: true},
+            {field: 'localIP', title: i18n['LocalIP'], width: 150, sort: true},
+            {field: 'localPort', title: i18n['LocalPort'], width: 120, sort: true},
         ];
 
         if (currentProxyType === 'tcp' || currentProxyType === 'udp') {
-            cols.push({field: 'remote_port', title: i18n['RemotePort'], width: 130, sort: true});
+            cols.push({field: 'remotePort', title: i18n['RemotePort'], width: 130, sort: true});
         } else if (currentProxyType === 'http' || currentProxyType === 'https') {
-            cols.push({field: 'custom_domains', title: i18n['CustomDomains'], sort: true});
+            cols.push({field: 'customDomains', title: i18n['CustomDomains'], sort: true});
             cols.push({field: 'subdomain', title: i18n['Subdomain'], width: 150, sort: true});
         }
 
         cols.push({
-            field: 'use_encryption', title: i18n['UseEncryption'], width: 170, templet: function (d) {
-                return i18n[d.use_encryption]
+            field: 'useEncryption', title: i18n['UseEncryption'], width: 170, templet: function (d) {
+                return i18n[d.transport.useEncryption]
             }, sort: true
         });
         cols.push({
-            field: 'use_compression', title: i18n['UseCompression'], width: 170, templet: function (d) {
-                return i18n[d.use_compression]
+            field: 'useCompression', title: i18n['UseCompression'], width: 170, templet: function (d) {
+                return i18n[d.transport.useCompression]
             }, sort: true
         });
         cols.push({title: i18n['Operation'], width: 150, toolbar: '#proxyListOperationTemplate'});
@@ -92,7 +90,7 @@ var loadProxyInfo = (function ($) {
             },
             toolbar: '#proxyListToolbarTemplate',
             defaultToolbar: false,
-            data: dataList,
+            data: data,
             initSort: {
                 field: 'name',
                 type: 'asc'

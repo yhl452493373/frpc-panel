@@ -18,6 +18,10 @@ func trimString(str string) string {
 	return strings.TrimSpace(str)
 }
 
+func equalIgnoreCase(source string, target string) bool {
+	return strings.ToUpper(source) == strings.ToUpper(target)
+}
+
 func sortSectionKeys(object ini.Section) []string {
 	var keys []string
 	for key := range object {
@@ -139,5 +143,18 @@ func (c *HandleController) parseConfigure(content, proxyType string) (interface{
 	if err != nil {
 		return nil, err
 	}
-	return clientConfig, nil
+
+	if proxyType == "none" {
+		return clientConfig, nil
+	}
+
+	allProxies := clientConfig.Proxies
+	var filterProxies = make([]v1.ProxyConfigurer, 0)
+	for i := range allProxies {
+		if equalIgnoreCase(allProxies[i].Type, proxyType) {
+			filterProxies = append(filterProxies, allProxies[i].ProxyConfigurer)
+		}
+	}
+
+	return filterProxies, nil
 }
