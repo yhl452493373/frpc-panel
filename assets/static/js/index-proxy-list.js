@@ -1,7 +1,12 @@
 var loadProxyInfo = (function ($) {
     var i18n = {}, currentProxyType, currentTitle;
     //param names in Basic tab
-    var basicParamNames = ['name', 'type', 'local_ip', 'local_port', 'custom_domains', 'subdomain', 'remote_port', 'use_encryption', 'use_compression'];
+    var basicParamNamesIgnore = ['toml'];
+    var basicParamNames = ['name', 'type', 'localIP', 'localPort', 'customDomains', 'subdomain', 'remotePort', 'useEncryption', 'useCompression'];
+    var basicParamNamesMap = {
+        useEncryption: 'transport.useEncryption',
+        useCompression: 'transport.useCompression'
+    }
 
     /**
      * get proxy info
@@ -39,7 +44,7 @@ var loadProxyInfo = (function ($) {
      * @param data {[Map<string,string>]} proxy data
      */
     function renderProxyListTable(data) {
-        data.forEach(function (temp){
+        data.forEach(function (temp) {
             temp.name = temp.name || '-';
             temp.localIP = temp.localIP || '-';
             temp.localPort = temp.localPort || '-';
@@ -157,12 +162,32 @@ var loadProxyInfo = (function ($) {
         var extraData = [];
         if (data != null) {
             var tempData = $.extend(true, {}, data);
+
+            basicParamNamesIgnore.forEach(function (basicName) {
+                if (basicParamNamesMap.hasOwnProperty(basicName)) {
+                    try {
+                        eval('delete tempData.' + basicParamNamesMap[basicName])
+                    } catch (e) {
+                    }
+                } else if (data.hasOwnProperty(basicName)) {
+                    delete tempData[basicName];
+                }
+            });
+
             basicParamNames.forEach(function (basicName) {
-                if (data.hasOwnProperty(basicName)) {
+                if (basicParamNamesMap.hasOwnProperty(basicName)) {
+                    try {
+                        basicData[basicName] = eval('tempData.' + basicParamNamesMap[basicName]);
+                        eval('delete tempData.' + basicParamNamesMap[basicName])
+                    } catch (e) {
+                        basicData[basicName] = true;
+                    }
+                } else if (data.hasOwnProperty(basicName)) {
                     basicData[basicName] = tempData[basicName];
                     delete tempData[basicName];
                 }
             });
+
             for (var key in tempData) {
                 extraData.push({
                     name: key,

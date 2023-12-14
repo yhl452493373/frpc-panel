@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/fatedier/frp/pkg/config"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
+	"github.com/pelletier/go-toml/v2"
 	"github.com/vaughan0/go-ini"
 	"io"
 	"log"
@@ -137,6 +138,11 @@ func (c *HandleController) parseResponse(res *ProxyResponse, response *http.Resp
 	log.Printf(res.Message)
 }
 
+type MyProxy struct {
+	Toml string `json:"toml"`
+	*v1.ProxyBaseConfig
+}
+
 func (c *HandleController) parseConfigure(content, proxyType string) (interface{}, error) {
 	clientConfig := v1.ClientConfig{}
 	err := config.LoadConfigure([]byte(content), &clientConfig)
@@ -149,12 +155,51 @@ func (c *HandleController) parseConfigure(content, proxyType string) (interface{
 	}
 
 	allProxies := clientConfig.Proxies
-	var filterProxies = make([]v1.ProxyConfigurer, 0)
+	var filterProxies = make([]MyProxy, 0)
 	for i := range allProxies {
 		if equalIgnoreCase(allProxies[i].Type, proxyType) {
-			filterProxies = append(filterProxies, allProxies[i].ProxyConfigurer)
+			baseConfig := allProxies[i].GetBaseConfig()
+			marshal, _ := toml.Marshal(allProxies[i].ProxyConfigurer)
+			proxy := MyProxy{
+				string(marshal),
+				baseConfig,
+			}
+			filterProxies = append(filterProxies, proxy)
 		}
 	}
 
+	var ss = `
+Name = 'ssh_random'
+Type = 'tcp'
+LocalIP = '192.168.31.100'
+LocalPort = 22
+RemotePort = 0
+
+[Transport]
+UseEncryption = false
+UseCompression = false
+BandwidthLimitMode = ''
+ProxyProtocolVersion = ''
+
+[Transport.BandwidthLimit]
+
+[LoadBalancer]
+Group = ''
+GroupKey = ''
+
+[HealthCheck]
+Type = ''
+TimeoutSeconds = 0
+MaxFailed = 0
+IntervalSeconds = 0
+Path = ''
+
+[Plugin]
+Type = ''
+
+`
+	v := v1.ProxyType("tcp")
+	r := v1.NewProxyConfigurerByType(v)
+	toml.Unmarshal([]byte(ss), r)
 	return filterProxies, nil
 }
