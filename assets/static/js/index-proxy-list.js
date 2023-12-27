@@ -1,11 +1,119 @@
 var loadProxyInfo = (function ($) {
     var i18n = {}, currentProxyType, currentTitle;
     //param names in Basic tab
-    var basicParamNamesIgnore = ['toml'];
-    var basicParamNames = ['name', 'type', 'localIP', 'localPort', 'customDomains', 'subdomain', 'remotePort', 'useEncryption', 'useCompression'];
-    var basicParamNamesMap = {
-        useEncryption: 'transport.useEncryption',
-        useCompression: 'transport.useCompression'
+    var basicParams = [
+        {
+            name: 'name',
+            defaultValue: '-'
+        }, {
+            name: 'type',
+            defaultValue: '-'
+        }, {
+            name: 'localIP',
+            defaultValue: '-'
+        }, {
+            name: 'localPort',
+            defaultValue: '-'
+        }, {
+            name: 'customDomains',
+            defaultValue: '-'
+        }, {
+            name: 'subdomain',
+            defaultValue: '-'
+        }, {
+            name: 'remotePort',
+            defaultValue: '-'
+        }, {
+            name: 'transport.useEncryption',
+            defaultValue: 'true',
+        }, {
+            name: 'transport.useCompression',
+            defaultValue: 'true',
+        }
+    ];
+
+    /**
+     *  a.b.c = 1
+     *  a.b.d = [2,3]
+     *  to
+     *  {a: {
+     *          b: {
+     *              c: 1
+     *              d: "[2,3]"
+     *          }
+     *      }
+     *  }
+     *
+     * @param obj json object
+     * @param names all names split from name string like 'a.b.c'
+     * @param value default value
+     */
+    function expandJSON(obj, names, value) {
+        var currentIndex = this.index || 0;
+        var childrenIndex = (currentIndex + 1) > names.length ? null : (currentIndex + 1);
+        var currentName = names[currentIndex], currentValue = {};
+        var childrenName = childrenIndex == null ? null : names[childrenIndex];
+        if (obj.hasOwnProperty(currentName)) {
+            currentValue = obj[currentName];
+        } else {
+            obj[currentName] = currentValue;
+        }
+
+        if (childrenName !== null) {
+            this.index = childrenIndex;
+            expandJSON(currentValue, names, value);
+        } else {
+            if (value != null) {
+                if (Array.isArray(value)) {
+                    obj[currentName] = JSON.stringify(value);
+                } else {
+                    obj[currentName] = value;
+                }
+            }
+            this.index = 0;
+        }
+    }
+
+    /**
+     * {a: {
+     *          b: {
+     *              c: 1
+     *              d: [2,3]
+     *          }
+     *      }
+     *  }
+     *  to
+     *  {
+     *      'a.b.c': 1,
+     *      'a.b.d': '[2,3]'
+     *  }
+     *
+     * @param obj json object
+     * @returns {*} flatted json key array
+     */
+    function flatJSON(obj) {
+        var flat = function (obj, prentKey, flattedJSON) {
+            flattedJSON = flattedJSON || {};
+            prentKey = prentKey || '';
+            if (prentKey !== '')
+                prentKey = prentKey + '.';
+            for (var key in obj) {
+                var value = obj[key];
+                if (typeof value === 'object' && Object.prototype.toString.call(value) === '[object Object]') {
+                    flat(value, prentKey + key, flattedJSON);
+                } else {
+                    if (prentKey === 'plugin.ClientPluginOptions.')
+                        prentKey = 'plugin.';
+                    if (Array.isArray(value)) {
+                        flattedJSON[prentKey + key] = JSON.stringify(value);
+                    } else {
+                        flattedJSON[prentKey + key] = value;
+                    }
+                }
+            }
+            return flattedJSON;
+        }
+        return flat(obj);
     }
 
     /**
@@ -44,17 +152,25 @@ var loadProxyInfo = (function ($) {
      * @param data {[Map<string,string>]} proxy data
      */
     function renderProxyListTable(data) {
+        var proxies = [];
         data.forEach(function (temp) {
-            temp.name = temp.name || '-';
-            temp.localIP = temp.localIP || '-';
-            temp.localPort = temp.localPort || '-';
-            temp.transport = temp.transport || {};
-            temp.transport.useEncryption = temp.transport.useEncryption || false;
-            temp.transport.useCompression = temp.transport.useCompression || false;
-            if (currentProxyType === 'http' || currentProxyType === 'https') {
-                temp.customDomains = temp.customDomains || '-';
-                temp.subdomain = temp.subdomain || '-';
-            }
+            var proxy = temp.ProxyConfigurer;
+            basicParams.forEach(function (basicParam) {
+                var name = basicParam.name;
+                var defaultValue = basicParam.defaultValue;
+                var value = null;
+                try {
+                    value = eval('proxy.' + name);
+                    if (value == null) {
+                        value = defaultValue;
+                    }
+                } catch (e) {
+                    value = defaultValue;
+                }
+                eval('proxy.' + name + ' = value');
+
+            });
+            proxies.push(proxy);
         });
 
         var $section = $('#content > section');
@@ -95,7 +211,7 @@ var loadProxyInfo = (function ($) {
             },
             toolbar: '#proxyListToolbarTemplate',
             defaultToolbar: false,
-            data: data,
+            data: proxies,
             initSort: {
                 field: 'name',
                 type: 'asc'
@@ -163,38 +279,31 @@ var loadProxyInfo = (function ($) {
         if (data != null) {
             var tempData = $.extend(true, {}, data);
 
-            basicParamNamesIgnore.forEach(function (basicName) {
-                if (basicParamNamesMap.hasOwnProperty(basicName)) {
-                    try {
-                        eval('delete tempData.' + basicParamNamesMap[basicName])
-                    } catch (e) {
-                    }
-                } else if (data.hasOwnProperty(basicName)) {
-                    delete tempData[basicName];
+            basicParams.forEach(function (basicName) {
+                var name = basicName.name;
+                if (name.indexOf('.') !== -1) {
+                    var names = name.split('.');
+                    expandJSON(tempData, names, 0, basicName.defaultValue);
+                    expandJSON(basicData, names, 0, null);
                 }
+
+                eval('basicData.' + name + ' = ' + 'tempData.' + name);
+                eval('delete tempData.' + name)
             });
 
-            basicParamNames.forEach(function (basicName) {
-                if (basicParamNamesMap.hasOwnProperty(basicName)) {
-                    try {
-                        basicData[basicName] = eval('tempData.' + basicParamNamesMap[basicName]);
-                        eval('delete tempData.' + basicParamNamesMap[basicName])
-                    } catch (e) {
-                        basicData[basicName] = true;
-                    }
-                } else if (data.hasOwnProperty(basicName)) {
-                    basicData[basicName] = tempData[basicName];
-                    delete tempData[basicName];
-                }
-            });
+            var flatted = flatJSON(tempData);
 
-            for (var key in tempData) {
+            for (var key in flatted) {
+                var value = flatted[key];
+                if (value == null || value === '')
+                    continue;
                 extraData.push({
                     name: key,
-                    value: tempData[key]
+                    value: value
                 });
             }
         }
+
         var html = document.getElementById('addProxyTemplate').innerHTML;
         var content = layui.laytpl(html).render({
             type: currentProxyType,
@@ -204,7 +313,7 @@ var loadProxyInfo = (function ($) {
             type: 1,
             title: false,
             skin: 'proxy-popup',
-            area: ['450px', '400px'],
+            area: ['550px', '400px'],
             content: content,
             btn: [i18n['Confirm'], i18n['Cancel']],
             btn1: function (index) {
@@ -216,7 +325,6 @@ var loadProxyInfo = (function ($) {
                         var value = $(this).find('input').last().val();
                         formData[name] = value;
                     });
-
                     addOrUpdate(formData, index, update);
                 }
             },
@@ -227,7 +335,7 @@ var loadProxyInfo = (function ($) {
                 //get and set old name for update form
                 var oldNameKey = layero.find('#oldName').attr('name');
                 basicData[oldNameKey] = basicData.name;
-                layui.form.val('addProxyForm', basicData);
+                layui.form.val('addProxyForm', flatJSON(basicData));
                 proxyPopupSuccess();
             }
         });
@@ -237,7 +345,7 @@ var loadProxyInfo = (function ($) {
         layui.form.render(null, 'addProxyForm');
         layui.form.on('input-affix(addition)', function (obj) {
             var $paramValue = $(obj.elem);
-            var $paramName = $paramValue.closest('.layui-form-item').find('input');
+            var $paramName = $paramValue.closest('.layui-form-item').find('input[type=text]');
             var name = $paramName.first().val();
             var value = $paramValue.val();
             var html = document.getElementById('extraParamAddedTemplate').innerHTML;

@@ -217,12 +217,11 @@ section.client-info .text-row .text-col {
 }
 
 .proxy-popup .extra-param-tab-item .layui-form-item .layui-input-inline:nth-child(1) {
-    width: 150px;
+    width: 200px;
 }
 
 .proxy-popup .extra-param-tab-item .layui-form-item .layui-input-inline:nth-child(3) {
     flex: 1;
-    margin-right: 0;
 }
 
 #searchForm input {
