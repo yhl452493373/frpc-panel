@@ -16,6 +16,21 @@ var loadClientInfo = (function ($) {
             type: 'none'
         }).done(function (result) {
             if (result.success) {
+                var proxies = [];
+                result.data.proxies.forEach(function (proxy){
+                    var items = flatJSON(proxy.ProxyConfigurer);
+                    proxies.push(expandJSON(items))
+                })
+                var visitors = [];
+                result.data.visitors.forEach(function (visitor){
+                    var items = flatJSON(visitor.VisitorConfigurer);
+                    visitors.push(expandJSON(items))
+                })
+
+                var newD = $.extend({},result.data,true);
+                newD.proxies = proxies;
+                newD.visitors = visitors;
+                console.log(TOML.stringify(newD))
                 renderClientInfo(result.data);
             } else {
                 layui.layer.msg(result.message);

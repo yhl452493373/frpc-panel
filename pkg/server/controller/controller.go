@@ -3,8 +3,10 @@ package controller
 import (
 	"bytes"
 	"fmt"
+	v1 "github.com/fatedier/frp/pkg/config/v1"
 	ginI18n "github.com/gin-contrib/i18n"
 	"github.com/gin-gonic/gin"
+	"github.com/pelletier/go-toml/v2"
 	"github.com/vaughan0/go-ini"
 	"log"
 	"net/http"
@@ -199,13 +201,20 @@ func (c *HandleController) MakeAddProxyFunc() func(context *gin.Context) {
 
 func (c *HandleController) MakeUpdateProxyFunc() func(context *gin.Context) {
 	return func(context *gin.Context) {
-		proxy := ini.Section{}
+		proxyType := context.Query("type")
+		proxy := v1.NewProxyConfigurerByType(v1.ProxyType(proxyType))
 
 		response := OperationResponse{
 			Success: true,
 			Code:    Success,
 			Message: "proxy update success",
 		}
+
+		var b = make([]byte, context.Request.ContentLength)
+		context.Request.Body.Read(b)
+		var s = string(b)
+		log.Print(s)
+		toml.Unmarshal(b, &proxy)
 
 		err := context.BindJSON(&proxy)
 		if err != nil {
@@ -217,52 +226,56 @@ func (c *HandleController) MakeUpdateProxyFunc() func(context *gin.Context) {
 			return
 		}
 
-		oldName := proxy[OldNameKey]
-		name := proxy[NameKey]
+		context.JSON(200, &response)
 
-		if trimString(oldName) == "" || trimString(name) == "" {
-			response.Success = false
-			response.Code = ParamError
-			response.Message = fmt.Sprintf("proxy add failed, proxy name invalid")
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		if _, exist := clientProxies[oldName]; !exist {
-			response.Success = false
-			response.Code = ProxyNotExist
-			response.Message = fmt.Sprintf("proxy update failed, proxy not exist")
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		if oldName != name {
-			if _, exist := clientProxies[name]; exist {
-				response.Success = false
-				response.Code = ProxyExist
-				response.Message = fmt.Sprintf("proxy update failed, proxy exist")
-				log.Printf(response.Message)
-				context.JSON(http.StatusOK, &response)
-				return
-			}
-		}
-
-		delete(clientProxies, oldName)
-		clientProxies[name] = proxy
-
-		res := c.UpdateFrpcConfig()
-		if !res.Success {
-			response.Success = false
-			response.Code = res.Code
-			response.Message = fmt.Sprintf("user update failed, error : %v", res.Message)
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		context.JSON(http.StatusOK, &response)
+		//proxy.GetBaseConfig()
+		//
+		//oldName := proxy[OldNameKey]
+		//name := proxy[NameKey]
+		//
+		//if trimString(oldName) == "" || trimString(name) == "" {
+		//	response.Success = false
+		//	response.Code = ParamError
+		//	response.Message = fmt.Sprintf("proxy add failed, proxy name invalid")
+		//	log.Printf(response.Message)
+		//	context.JSON(http.StatusOK, &response)
+		//	return
+		//}
+		//
+		//if _, exist := clientProxies[oldName]; !exist {
+		//	response.Success = false
+		//	response.Code = ProxyNotExist
+		//	response.Message = fmt.Sprintf("proxy update failed, proxy not exist")
+		//	log.Printf(response.Message)
+		//	context.JSON(http.StatusOK, &response)
+		//	return
+		//}
+		//
+		//if oldName != name {
+		//	if _, exist := clientProxies[name]; exist {
+		//		response.Success = false
+		//		response.Code = ProxyExist
+		//		response.Message = fmt.Sprintf("proxy update failed, proxy exist")
+		//		log.Printf(response.Message)
+		//		context.JSON(http.StatusOK, &response)
+		//		return
+		//	}
+		//}
+		//
+		//delete(clientProxies, oldName)
+		//clientProxies[name] = proxy
+		//
+		//res := c.UpdateFrpcConfig()
+		//if !res.Success {
+		//	response.Success = false
+		//	response.Code = res.Code
+		//	response.Message = fmt.Sprintf("user update failed, error : %v", res.Message)
+		//	log.Printf(response.Message)
+		//	context.JSON(http.StatusOK, &response)
+		//	return
+		//}
+		//
+		//context.JSON(http.StatusOK, &response)
 	}
 }
 

@@ -1,120 +1,5 @@
 var loadProxyInfo = (function ($) {
     var i18n = {}, currentProxyType, currentTitle;
-    //param names in Basic tab
-    var basicParams = [
-        {
-            name: 'name',
-            defaultValue: '-'
-        }, {
-            name: 'type',
-            defaultValue: '-'
-        }, {
-            name: 'localIP',
-            defaultValue: '-'
-        }, {
-            name: 'localPort',
-            defaultValue: '-'
-        }, {
-            name: 'customDomains',
-            defaultValue: '-'
-        }, {
-            name: 'subdomain',
-            defaultValue: '-'
-        }, {
-            name: 'remotePort',
-            defaultValue: '-'
-        }, {
-            name: 'transport.useEncryption',
-            defaultValue: 'true',
-        }, {
-            name: 'transport.useCompression',
-            defaultValue: 'true',
-        }
-    ];
-
-    /**
-     *  a.b.c = 1
-     *  a.b.d = [2,3]
-     *  to
-     *  {a: {
-     *          b: {
-     *              c: 1
-     *              d: "[2,3]"
-     *          }
-     *      }
-     *  }
-     *
-     * @param obj json object
-     * @param names all names split from name string like 'a.b.c'
-     * @param value default value
-     */
-    function expandJSON(obj, names, value) {
-        var currentIndex = this.index || 0;
-        var childrenIndex = (currentIndex + 1) > names.length ? null : (currentIndex + 1);
-        var currentName = names[currentIndex], currentValue = {};
-        var childrenName = childrenIndex == null ? null : names[childrenIndex];
-        if (obj.hasOwnProperty(currentName)) {
-            currentValue = obj[currentName];
-        } else {
-            obj[currentName] = currentValue;
-        }
-
-        if (childrenName !== null) {
-            this.index = childrenIndex;
-            expandJSON(currentValue, names, value);
-        } else {
-            if (value != null) {
-                if (Array.isArray(value)) {
-                    obj[currentName] = JSON.stringify(value);
-                } else {
-                    obj[currentName] = value;
-                }
-            }
-            this.index = 0;
-        }
-    }
-
-    /**
-     * {a: {
-     *          b: {
-     *              c: 1
-     *              d: [2,3]
-     *          }
-     *      }
-     *  }
-     *  to
-     *  {
-     *      'a.b.c': 1,
-     *      'a.b.d': '[2,3]'
-     *  }
-     *
-     * @param obj json object
-     * @returns {*} flatted json key array
-     */
-    function flatJSON(obj) {
-        var flat = function (obj, prentKey, flattedJSON) {
-            flattedJSON = flattedJSON || {};
-            prentKey = prentKey || '';
-            if (prentKey !== '')
-                prentKey = prentKey + '.';
-            for (var key in obj) {
-                var value = obj[key];
-                if (typeof value === 'object' && Object.prototype.toString.call(value) === '[object Object]') {
-                    flat(value, prentKey + key, flattedJSON);
-                } else {
-                    if (prentKey === 'plugin.ClientPluginOptions.')
-                        prentKey = 'plugin.';
-                    if (Array.isArray(value)) {
-                        flattedJSON[prentKey + key] = JSON.stringify(value);
-                    } else {
-                        flattedJSON[prentKey + key] = value;
-                    }
-                }
-            }
-            return flattedJSON;
-        }
-        return flat(obj);
-    }
 
     /**
      * get proxy info
@@ -282,9 +167,9 @@ var loadProxyInfo = (function ($) {
             basicParams.forEach(function (basicName) {
                 var name = basicName.name;
                 if (name.indexOf('.') !== -1) {
-                    var names = name.split('.');
-                    expandJSON(tempData, names, 0, basicName.defaultValue);
-                    expandJSON(basicData, names, 0, null);
+                    var keys = name.split('.');
+                    expandJSONKeys(tempData, keys, basicName.defaultValue);
+                    expandJSONKeys(basicData, keys, null);
                 }
 
                 eval('basicData.' + name + ' = ' + 'tempData.' + name);
@@ -325,6 +210,7 @@ var loadProxyInfo = (function ($) {
                         var value = $(this).find('input').last().val();
                         formData[name] = value;
                     });
+
                     addOrUpdate(formData, index, update);
                 }
             },
@@ -375,15 +261,20 @@ var loadProxyInfo = (function ($) {
         var loading = layui.layer.load();
         var url = '';
         if (update) {
-            url = '/update';
+            url = '/update?type=' + currentProxyType;
         } else {
             url = '/add?type=' + currentProxyType;
         }
+
+        var tomlStr = TOML.stringify(expandJSON(data));
+
+        //todo get all proxy and replace or add a new proxy in it
+
         $.ajax({
             url: url,
             type: 'post',
             contentType: 'application/json',
-            data: JSON.stringify(data),
+            data: JSON.stringify(expandJSON(data)),
             success: function (result) {
                 if (result.success) {
                     layui.layer.close(index);

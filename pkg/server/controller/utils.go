@@ -137,11 +137,6 @@ func (c *HandleController) parseResponse(res *ProxyResponse, response *http.Resp
 	log.Printf(res.Message)
 }
 
-type MyProxy struct {
-	Toml string `json:"toml"`
-	*v1.ProxyBaseConfig
-}
-
 func (c *HandleController) parseConfigure(content, proxyType string) (interface{}, error) {
 	clientConfig := v1.ClientConfig{}
 	err := config.LoadConfigure([]byte(content), &clientConfig)
@@ -160,5 +155,6 @@ func (c *HandleController) parseConfigure(content, proxyType string) (interface{
 			filterProxies = append(filterProxies, allProxies[i])
 		}
 	}
+
 	return filterProxies, nil
 }
