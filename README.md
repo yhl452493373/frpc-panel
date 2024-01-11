@@ -100,3 +100,4 @@ dashboard_pwd = "admin"
 + [fp-multiuser](https://github.com/gofrp/fp-multiuser)
 + [layui](https://github.com/layui/layui)
 + [layui-theme-dark](https://github.com/Sight-wcg/layui-theme-dark)
++ 修改过的JavaScript版的[toml](https://github.com/yhl452493373/toml),原始地址[toml](https://github.com/flourd/toml)
