@@ -1,13 +1,9 @@
 var loadClientInfo = (function ($) {
-    var i18n = {};
-
     /**
      * get client info
-     * @param lang {Map<string,string>} language json
      * @param title {string} page title
      */
-    function loadClientInfo(lang, title) {
-        i18n = lang;
+    function loadClientInfo( title) {
         $("#title").text(title);
         $('#content').empty();
         var loading = layui.layer.load();
@@ -26,8 +22,8 @@ var loadClientInfo = (function ($) {
     }
 
     function renderClientInfo(data) {
-        data.tcp_mux = i18n[data.tcp_mux];
-        data.tls_enable = i18n[data.tls_enable];
+        data.transport.tcpMux = i18n[data.transport.tcpMux];
+        data.transport.tls.enable = i18n[data.transport.tls.enable];
         var html = layui.laytpl($('#clientInfoTemplate').html()).render(data);
         $('#content').html(html);
     }

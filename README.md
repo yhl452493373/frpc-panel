@@ -6,6 +6,8 @@ frpc-panel 是 https://github.com/fatedier/frp 的一个客户端工具，用于
 
 frps-panel 会以一个单独的进程运行，通过后台调用frpc的接口实现对frpc的操作。
 
+## 从版本2.0.0开始，本插件只支持版本号大于等于v0.52.0的frp
+
 ## 功能
 
 + 展示客户端基础配置信息
@@ -17,14 +19,21 @@ frps-panel 会以一个单独的进程运行，通过后台调用frpc的接口�
 
 ## 使用方法
 
-1、frpc的配置文件`frpc.ini`中，增加如下内容：
+1、frpc的配置文件`frpc.toml`中，增加如下内容：
 
-```ini
-[common]
-admin_addr = 127.0.0.1
-admin_port = 7400
-admin_user = admin
-admin_pwd = admin
+```toml
+webServer.addr = "127.0.0.1"
+webServer.port = 7400
+webServer.user = "admin"
+webServer.password = "admin"
+```
+或
+```toml
+[webServer]
+addr = "127.0.0.1"
+port = 7400
+user = "admin"
+password = "admin"
 ```
 
 2、frpc-panel的配置文件`frpc-panel.toml`的配置如下：

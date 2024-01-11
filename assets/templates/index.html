@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="./static/css/index.css?v=${ .version }">
     <link rel="stylesheet" href="./static/css/color.css?v=${ .version }">
     <script src="./static/lib/layui/layui.js?v=${ .version }"></script>
+    <script src="./static/js/toml.js?v=${ .version }"></script>
+    <script src="./static/js/json-process.js?v=${ .version }"></script>
     <script src="./static/js/index-client-info.js?v=${ .version }"></script>
     <script src="./static/js/index-proxy-overview.js?v=${ .version }"></script>
     <script src="./static/js/index-proxy-list.js?v=${ .version }"></script>
@@ -77,19 +79,19 @@
         <div class="text-info">
             <div class="text-row">
                 <div class="text-col">${ .ServerAddress }</div>
-                <div class="text-col">{{= d.server_addr || '-' }}</div>
+                <div class="text-col">{{= d.serverAddr || '-' }}</div>
             </div>
             <div class="text-row">
                 <div class="text-col">${ .ServerPort }</div>
-                <div class="text-col">{{= d.server_port || '-' }}</div>
+                <div class="text-col">{{= d.serverPort || '-' }}</div>
             </div>
             <div class="text-row">
                 <div class="text-col">${ .Protocol }</div>
-                <div class="text-col">{{= d.protocol || '-' }}</div>
+                <div class="text-col">{{= d.transport.protocol || '-' }}</div>
             </div>
             <div class="text-row">
                 <div class="text-col">${ .TCPMux }</div>
-                <div class="text-col">{{= d.tcp_mux || '-' }}</div>
+                <div class="text-col">{{= d.transport.tcpMux || '-' }}</div>
             </div>
             <div class="text-row">
                 <div class="text-col">${ .User }</div>
@@ -97,98 +99,98 @@
             </div>
             <div class="text-row">
                 <div class="text-col">${ .UserToken }</div>
-                <div class="text-col">{{= d.metas.token || '-' }}</div>
+                <div class="text-col">{{= d.metadatas.token || '-' }}</div>
             </div>
             <div class="text-row">
                 <div class="text-col">${ .AdminAddress }</div>
-                <div class="text-col">{{= d.admin_addr || '-' }}</div>
+                <div class="text-col">{{= d.webServer.addr || '-' }}</div>
             </div>
             <div class="text-row">
                 <div class="text-col">${ .AdminPort }</div>
-                <div class="text-col">{{= d.admin_port || '-' }}</div>
+                <div class="text-col">{{= d.webServer.port || '-' }}</div>
             </div>
             <div class="text-row">
                 <div class="text-col">${ .AdminUser }</div>
-                <div class="text-col">{{= d.admin_user || '-' }}</div>
+                <div class="text-col">{{= d.webServer.user || '-' }}</div>
             </div>
             <div class="text-row">
                 <div class="text-col">${ .AdminPwd }</div>
-                <div class="text-col">{{= d.admin_pwd || '-' }}</div>
+                <div class="text-col">{{= d.webServer.password || '-' }}</div>
             </div>
             <div class="text-row">
                 <div class="text-col">${ .HeartbeatInterval }</div>
-                <div class="text-col">{{= d.heartbeat_interval || '-' }}</div>
+                <div class="text-col">{{= d.transport.heartbeatInterval || '-' }}</div>
             </div>
             <div class="text-row">
                 <div class="text-col">${ .HeartbeatTimeout }</div>
-                <div class="text-col">{{= d.heartbeat_timeout || '-' }}</div>
+                <div class="text-col">{{= d.transport.heartbeatTimeout || '-' }}</div>
             </div>
             <div class="text-row">
                 <div class="text-col">${ .TLSEnable }</div>
-                <div class="text-col">{{= d.tls_enable || '-' }}</div>
+                <div class="text-col">{{= d.transport.tls.enable || '-' }}</div>
             </div>
             <div class="text-row">
                 <div class="text-col">${ .TLSKeyFile }</div>
-                <div class="text-col">{{= d.tls_key_file || '-' }}</div>
+                <div class="text-col">{{= d.transport.tls.keyFile || '-' }}</div>
             </div>
             <div class="text-row">
                 <div class="text-col">${ .TLSCertFile }</div>
-                <div class="text-col">{{= d.tls_cert_file || '-' }}</div>
+                <div class="text-col">{{= d.transport.tls.certFile || '-' }}</div>
             </div>
             <div class="text-row">
                 <div class="text-col">${ .TLSTrustedCAFile }</div>
-                <div class="text-col">{{= d.tls_trusted_ca_file || '-' }}</div>
+                <div class="text-col">{{= d.transport.tls.trustedCaFile || '-' }}</div>
             </div>
         </div>
     </section>
 </script>
 
 <!--用户列表-添加用户表单模板-->
-<script type="text/html" id="addProxyTemplate">
-    <form class="layui-form" id="addProxyForm" lay-filter="addProxyForm">
+<script type="text/html" id="proxyFormTemplate">
+    <form class="layui-form" id="proxyForm" lay-filter="proxyForm">
         <div class="layui-tab layui-tab-brief">
             <ul class="layui-tab-title">
                 <li class="layui-this">${ .Basic }</li>
                 <li>${ .Extra }</li>
             </ul>
             <div class="layui-tab-content">
-                <input type="hidden" name="type">
-                <input type="hidden" name="${ .OldNameKey }" id="oldName">
+                <input type="hidden" name="type" id="proxyType">
+                <input type="hidden" name="${ .OriginalNameKey }" id="originalNameKey">
                 <div class="layui-tab-item layui-show">
                     <div class="layui-form-item">
                         <label class="layui-form-label">${ .ProxyName }</label>
                         <div class="layui-input-block">
-                            <input type="text" name="name" placeholder="${ .ProxyName }" autocomplete="off"
-                                   class="layui-input"/>
+                            <input type="text" name="name" id="proxyName" placeholder="${ .ProxyNameExample }"
+                                   autocomplete="off" class="layui-input" lay-verify="proxyName"/>
                         </div>
                     </div>
                     <div class="layui-form-item">
-                        <label class="layui-form-label">${ .LocalIp }</label>
+                        <label class="layui-form-label">${ .LocalIP }</label>
                         <div class="layui-input-block">
-                            <input type="text" name="local_ip" placeholder="${ .LocalIp }" autocomplete="off"
-                                   class="layui-input"/>
+                            <input type="text" name="localIP" id="localIP" placeholder="${ .LocalIPExample }"
+                                   autocomplete="off" class="layui-input"/>
                         </div>
                     </div>
                     <div class="layui-form-item">
                         <label class="layui-form-label">${ .LocalPort }</label>
                         <div class="layui-input-block">
-                            <input type="text" name="local_port" placeholder="${ .LocalPort }" autocomplete="off"
-                                   class="layui-input"/>
+                            <input type="text" name="localPort" id="localPort" placeholder="${ .LocalPortExample }"
+                                   autocomplete="off" class="layui-input" lay-verify="localPort"/>
                         </div>
                     </div>
                     {{# if (d.type.toLowerCase() === 'http' || d.type.toLowerCase() === 'https') { }}
                     <div class="layui-form-item http https">
                         <label class="layui-form-label">${ .CustomDomains }</label>
                         <div class="layui-input-block">
-                            <textarea name="custom_domains" placeholder="${ .CustomDomains }" autocomplete="off"
-                                      class="layui-textarea"></textarea>
+                            <textarea name="customDomains" id="customDomains" placeholder="${ .CustomDomainsExample }"
+                                      autocomplete="off" class="layui-textarea" lay-verify="domain"></textarea>
                         </div>
                     </div>
                     <div class="layui-form-item layui-form-text http https">
                         <label class="layui-form-label">${ .Subdomain }</label>
                         <div class="layui-input-block">
-                            <textarea name="subdomain" placeholder="${ .Subdomain }" autocomplete="off"
-                                      class="layui-textarea"></textarea>
+                            <textarea name="subdomain" id="subdomain" placeholder="${ .Subdomain }" autocomplete="off"
+                                      class="layui-textarea" lay-verify="domain"></textarea>
                         </div>
                     </div>
                     {{# } }}
@@ -196,7 +198,8 @@
                     <div class="layui-form-item tcp udp">
                         <label class="layui-form-label">${ .RemotePort }</label>
                         <div class="layui-input-block">
-                            <input type="text" name="remote_port" placeholder="${ .RemotePort }" autocomplete="off"
+                            <input type="text" name="remotePort" placeholder="${ .RemotePortExample }"
+                                   autocomplete="off"
                                    class="layui-input"/>
                         </div>
                     </div>
@@ -206,7 +209,8 @@
                             <div class="layui-form-item">
                                 <label class="layui-form-label">${ .UseEncryption }</label>
                                 <div class="layui-input-block">
-                                    <input type="checkbox" name="use_encryption" value="true" title="${ .true }">
+                                    <input type="checkbox" name="transport.useEncryption" value="true"
+                                           title="${ .true }">
                                 </div>
                             </div>
                         </div>
@@ -214,7 +218,8 @@
                             <div class="layui-form-item">
                                 <label class="layui-form-label">${ .UseCompression }</label>
                                 <div class="layui-input-block">
-                                    <input type="checkbox" name="use_compression" value="true" title="${ .true }">
+                                    <input type="checkbox" name="transport.useCompression" value="true"
+                                           title="${ .true }">
                                 </div>
                             </div>
                         </div>

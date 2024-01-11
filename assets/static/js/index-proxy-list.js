@@ -1,17 +1,12 @@
 var loadProxyInfo = (function ($) {
-    var i18n = {}, currentProxyType, currentTitle;
-    //param names in Basic tab
-    var basicParamNames = ['name', 'type', 'local_ip', 'local_port', 'custom_domains', 'subdomain', 'remote_port', 'use_encryption', 'use_compression'];
+    var currentProxyType, currentTitle;
 
     /**
      * get proxy info
-     * @param lang {{}} language json
      * @param title page title
      * @param proxyType proxy type
      */
-    function loadProxyInfo(lang, title, proxyType) {
-        if (lang != null)
-            i18n = lang;
+    function loadProxyInfo(title, proxyType) {
         if (title != null)
             currentTitle = title;
         if (proxyType != null)
@@ -26,6 +21,7 @@ var loadProxyInfo = (function ($) {
             if (result.success) {
                 $('#content').html($('#proxyListTableTemplate').html());
                 renderProxyListTable(result.data);
+                loadFrpcConfig();
             } else {
                 layui.layer.msg(result.message);
             }
@@ -34,50 +30,82 @@ var loadProxyInfo = (function ($) {
         });
     }
 
+    function loadFrpcConfig() {
+        $.getJSON('/proxy/api/config', {
+            type: 'none'
+        }).done(function (result) {
+            if (result.success) {
+                var proxies = [];
+                result.data.proxies.forEach(function (proxy) {
+                    var items = flatJSON(proxy['ProxyConfigurer']);
+                    proxies.push(expandJSON(items))
+                })
+                var visitors = [];
+                result.data.visitors.forEach(function (visitor) {
+                    var items = flatJSON(visitor['VisitorConfigurer']);
+                    visitors.push(expandJSON(items))
+                });
+
+                window.clientConfig = $.extend(true, {}, result.data);
+                window.clientConfig.proxies = proxies;
+                window.clientConfig.visitors = visitors;
+            } else {
+                window.clientConfig = {};
+                layui.layer.msg(result.message);
+            }
+        });
+    }
+
     /**
      * render proxy list table
-     * @param data {Map<string,Map<string,string>>} proxy data
+     * @param data {[Map<string,string>]} proxy data
      */
     function renderProxyListTable(data) {
-        var dataList = [];
-        for (var key in data) {
-            var temp = data[key];
-            temp.name = key;
-            temp.local_ip = temp.local_ip || '-';
-            temp.local_port = temp.local_port || '-';
-            temp.use_encryption = temp.use_encryption || false;
-            temp.use_compression = temp.use_compression || false;
-            if (currentProxyType === 'http' || currentProxyType === 'https') {
-                temp.custom_domains = temp.custom_domains || '-';
-                temp.subdomain = temp.subdomain || '-';
-            }
-            dataList.push(temp);
-        }
+        var proxies = [];
+        data.forEach(function (temp) {
+            var proxy = temp.ProxyConfigurer;
+            basicParams.forEach(function (basicParam) {
+                var name = basicParam.name;
+                var defaultValue = basicParam.defaultValue;
+                var value = null;
+                try {
+                    value = eval('proxy.' + name);
+                    if (value == null) {
+                        value = defaultValue;
+                    }
+                } catch (e) {
+                    value = defaultValue;
+                }
+                eval('proxy.' + name + ' = value');
+
+            });
+            proxies.push(proxy);
+        });
 
         var $section = $('#content > section');
         var cols = [
             {type: 'checkbox'},
             {field: 'name', title: i18n['Name'], sort: true},
             {field: 'type', title: i18n['Type'], width: 110, sort: true},
-            {field: 'local_ip', title: i18n['LocalIp'], width: 150, sort: true},
-            {field: 'local_port', title: i18n['LocalPort'], width: 120, sort: true},
+            {field: 'localIP', title: i18n['LocalIP'], width: 150, sort: true},
+            {field: 'localPort', title: i18n['LocalPort'], width: 120, sort: true},
         ];
 
         if (currentProxyType === 'tcp' || currentProxyType === 'udp') {
-            cols.push({field: 'remote_port', title: i18n['RemotePort'], width: 130, sort: true});
+            cols.push({field: 'remotePort', title: i18n['RemotePort'], width: 130, sort: true});
         } else if (currentProxyType === 'http' || currentProxyType === 'https') {
-            cols.push({field: 'custom_domains', title: i18n['CustomDomains'], sort: true});
+            cols.push({field: 'customDomains', title: i18n['CustomDomains'], sort: true});
             cols.push({field: 'subdomain', title: i18n['Subdomain'], width: 150, sort: true});
         }
 
         cols.push({
-            field: 'use_encryption', title: i18n['UseEncryption'], width: 170, templet: function (d) {
-                return i18n[d.use_encryption]
+            field: 'useEncryption', title: i18n['UseEncryption'], width: 170, templet: function (d) {
+                return i18n[d.transport.useEncryption]
             }, sort: true
         });
         cols.push({
-            field: 'use_compression', title: i18n['UseCompression'], width: 170, templet: function (d) {
-                return i18n[d.use_compression]
+            field: 'useCompression', title: i18n['UseCompression'], width: 170, templet: function (d) {
+                return i18n[d.transport.useCompression]
             }, sort: true
         });
         cols.push({title: i18n['Operation'], width: 150, toolbar: '#proxyListOperationTemplate'});
@@ -88,11 +116,15 @@ var loadProxyInfo = (function ($) {
             text: {none: i18n['EmptyData']},
             cols: [cols],
             page: {
-                layout: navigator.language.indexOf("zh") === -1 ? ['first', 'prev', 'next', 'last'] : ['prev', 'page', 'next', 'skip', 'count', 'limit']
+                limitTemplet: function (item) {
+                    return item + i18n['PerPage'];
+                },
+                skipText: [i18n['Goto'], '', i18n['Confirm']],
+                countText: [i18n['Total'], i18n['Items']]
             },
             toolbar: '#proxyListToolbarTemplate',
             defaultToolbar: false,
-            data: dataList,
+            data: proxies,
             initSort: {
                 field: 'name',
                 type: 'asc'
@@ -159,20 +191,32 @@ var loadProxyInfo = (function ($) {
         var extraData = [];
         if (data != null) {
             var tempData = $.extend(true, {}, data);
-            basicParamNames.forEach(function (basicName) {
-                if (data.hasOwnProperty(basicName)) {
-                    basicData[basicName] = tempData[basicName];
-                    delete tempData[basicName];
+
+            basicParams.forEach(function (basicName) {
+                var name = basicName.name;
+                if (name.indexOf('.') !== -1) {
+                    var keys = name.split('.');
+                    expandJSONKeys(tempData, keys, null);
+                    expandJSONKeys(basicData, keys, basicName.defaultValue);
                 }
+
+                eval('basicData.' + name + ' = ' + 'tempData.' + name);
+                eval('delete tempData.' + name)
             });
-            for (var key in tempData) {
+
+            var flatted = flatJSON(tempData);
+            for (var key in flatted) {
+                var value = flatted[key];
+                if (value == null || value === '')
+                    continue;
                 extraData.push({
                     name: key,
-                    value: tempData[key]
+                    value: value
                 });
             }
         }
-        var html = document.getElementById('addProxyTemplate').innerHTML;
+
+        var html = document.getElementById('proxyFormTemplate').innerHTML;
         var content = layui.laytpl(html).render({
             type: currentProxyType,
             extraData: extraData
@@ -181,19 +225,18 @@ var loadProxyInfo = (function ($) {
             type: 1,
             title: false,
             skin: 'proxy-popup',
-            area: ['450px', '400px'],
+            area: ['550px', '400px'],
             content: content,
             btn: [i18n['Confirm'], i18n['Cancel']],
             btn1: function (index) {
-                if (layui.form.validate('#addProxyTemplate')) {
-                    var formData = layui.form.val('addProxyForm');
-                    var $items = $('#addProxyForm .extra-param-tab-item .extra-param-item');
+                if (layui.form.validate('#proxyForm')) {
+                    var formData = layui.form.val('proxyForm');
+                    var $items = $('#proxyForm .extra-param-tab-item .extra-param-item');
                     $items.each(function () {
                         var name = $(this).find('input').first().val();
                         var value = $(this).find('input').last().val();
                         formData[name] = value;
                     });
-
                     addOrUpdate(formData, index, update);
                 }
             },
@@ -202,19 +245,19 @@ var loadProxyInfo = (function ($) {
             },
             success: function (layero, index, that) {
                 //get and set old name for update form
-                var oldNameKey = layero.find('#oldName').attr('name');
-                basicData[oldNameKey] = basicData.name;
-                layui.form.val('addProxyForm', basicData);
+                var originalNameKey = layero.find('#originalNameKey').attr('name');
+                basicData[originalNameKey] = basicData.name;
+                layui.form.val('proxyForm', flatJSON(basicData));
                 proxyPopupSuccess();
             }
         });
     }
 
     function proxyPopupSuccess() {
-        layui.form.render(null, 'addProxyForm');
+        layui.form.render(null, 'proxyForm');
         layui.form.on('input-affix(addition)', function (obj) {
             var $paramValue = $(obj.elem);
-            var $paramName = $paramValue.closest('.layui-form-item').find('input');
+            var $paramName = $paramValue.closest('.layui-form-item').find('input[type=text]');
             var name = $paramName.first().val();
             var value = $paramValue.val();
             var html = document.getElementById('extraParamAddedTemplate').innerHTML;
@@ -241,18 +284,66 @@ var loadProxyInfo = (function ($) {
      * @param update update flag. true - update, false - add
      */
     function addOrUpdate(data, index, update) {
-        var loading = layui.layer.load();
-        var url = '';
-        if (update) {
-            url = '/update';
-        } else {
-            url = '/add?type=' + currentProxyType;
+        try {
+            var originalNameKey = $('#originalNameKey').attr('name');
+            var proxies = clientConfig.proxies;
+            if (update) {
+                for (var i = 0; i < proxies.length; i++) {
+                    if (data[originalNameKey] === proxies[i].name) {
+                        delete data[originalNameKey];
+                        proxies[i] = expandJSON(data);
+                    }
+                }
+            } else {
+                proxies.push(expandJSON(data));
+            }
+        } catch (e) {
+            layui.layer.msg(e.message);
+            return;
         }
+
+        updateFrpcConfig(index);
+    }
+
+    /**
+     * batch remove proxy popup
+     * @param data {[Map<string,string>]} proxy data list
+     */
+    function batchRemovePopup(data) {
+        if (data.length === 0) {
+            layui.layer.msg(i18n['ShouldCheckProxy']);
+            return;
+        }
+        layui.layer.confirm(i18n['ConfirmRemoveProxy'], {
+            title: i18n['OperationConfirm'],
+            btn: [i18n['Confirm'], i18n['Cancel']]
+        }, function (index) {
+            layui.layer.close(index);
+            var proxies = clientConfig.proxies;
+            for (var i = 0; i < data.length; i++) {
+                proxies.forEach(function (proxy, j) {
+                    if (data[i].name === proxy.name) {
+                        proxies.splice(j, 1);
+                    }
+                });
+            }
+
+            updateFrpcConfig(index);
+        });
+    }
+
+    /**
+     * update frpc's config
+     * @param index popup index
+     */
+    function updateFrpcConfig(index) {
+        var loading = layui.layer.load();
+        var content = TOML.stringify(clientConfig);
         $.ajax({
-            url: url,
+            url: '/update',
             type: 'post',
-            contentType: 'application/json',
-            data: JSON.stringify(data),
+            contentType: 'text/plain',
+            data: content,
             success: function (result) {
                 if (result.success) {
                     layui.layer.close(index);
@@ -273,58 +364,10 @@ var loadProxyInfo = (function ($) {
     }
 
     /**
-     * batch remove proxy popup
-     * @param data {[Map<string,string>]} proxy data list
-     */
-    function batchRemovePopup(data) {
-        if (data.length === 0) {
-            layui.layer.msg(i18n['ShouldCheckProxy']);
-            return;
-        }
-        data.forEach(function (temp) {
-            for (var key in temp) {
-                if (typeof temp[key] === 'boolean') {
-                    temp[key] = temp[key] + '';
-                }
-            }
-        });
-        layui.layer.confirm(i18n['ConfirmRemoveProxy'], {
-            title: i18n['OperationConfirm'],
-            btn: [i18n['Confirm'], i18n['Cancel']]
-        }, function (index) {
-            layui.layer.close(index);
-
-            var loading = layui.layer.load();
-            $.post({
-                url: '/remove',
-                type: 'post',
-                contentType: 'application/json',
-                data: JSON.stringify(data),
-                success: function (result) {
-                    if (result.success) {
-                        layui.layer.close(index);
-                        reloadTable();
-                        layui.layer.msg(i18n['OperateSuccess']);
-                    } else {
-                        errorMsg(result);
-                        if (result.code === 5) {
-                            layui.layer.close(index);
-                            reloadTable();
-                        }
-                    }
-                },
-                complete: function () {
-                    layui.layer.close(loading);
-                }
-            });
-        });
-    }
-
-    /**
      * reload proxy table
      */
     function reloadTable() {
-        loadProxyInfo(null, null, null);
+        loadProxyInfo(null, null);
     }
 
     /**

@@ -4,11 +4,10 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/fatedier/frp/pkg/config"
-	"github.com/vaughan0/go-ini"
+	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"io"
 	"log"
 	"net/http"
-	"sort"
 	"strconv"
 	"strings"
 )
@@ -17,42 +16,8 @@ func trimString(str string) string {
 	return strings.TrimSpace(str)
 }
 
-func sortSectionKeys(object ini.Section) []string {
-	var keys []string
-	for key := range object {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-	return keys
-}
-
-func serializeSections() []byte {
-	var build strings.Builder
-	build.WriteString("[common]\n")
-
-	for _, key := range sortSectionKeys(clientCommon) {
-		build.WriteString(fmt.Sprintf("%s = %s\n", key, clientCommon[key]))
-	}
-	build.WriteString("\n")
-
-	sections := Sections{clientProxies}
-
-	for _, sectionInfo := range sections.sort() {
-		name := sectionInfo.Name
-		build.WriteString(fmt.Sprintf("[%s]\n", name))
-		section := sectionInfo.Section
-
-		for _, key := range sortSectionKeys(section) {
-			value := section[key]
-			if key == NameKey || key == OldNameKey || trimString(value) == "" {
-				continue
-			}
-			build.WriteString(fmt.Sprintf("%s = %s\n", key, value))
-		}
-		build.WriteString("\n")
-	}
-
-	return []byte(build.String())
+func equalIgnoreCase(source string, target string) bool {
+	return strings.ToUpper(source) == strings.ToUpper(target)
 }
 
 func (c *HandleController) buildRequestUrl(serverApi string) string {
@@ -133,32 +98,23 @@ func (c *HandleController) parseResponse(res *ProxyResponse, response *http.Resp
 }
 
 func (c *HandleController) parseConfigure(content, proxyType string) (interface{}, error) {
-	currentProxies := make(map[string]ini.Section)
-	clientProxies = make(map[string]ini.Section)
-	common, err := config.UnmarshalClientConfFromIni(content)
+	clientConfig := v1.ClientConfig{}
+	err := config.LoadConfigure([]byte(content), &clientConfig)
 	if err != nil {
 		return nil, err
-	}
-	cfg, err := ini.Load(strings.NewReader(content))
-	if err != nil {
-		return nil, err
-	}
-
-	for name, section := range cfg {
-		if name == "common" {
-			clientCommon = section
-			continue
-		}
-		if strings.ToLower(section["type"]) == strings.ToLower(proxyType) {
-			currentProxies[name] = section
-		}
-		clientProxies[name] = section
-		delete(clientProxies[name], NameKey)
 	}
 
 	if proxyType == "none" {
-		return common, nil
+		return clientConfig, nil
 	}
 
-	return currentProxies, nil
+	allProxies := clientConfig.Proxies
+	var filterProxies = make([]v1.TypedProxyConfig, 0)
+	for i := range allProxies {
+		if equalIgnoreCase(allProxies[i].Type, proxyType) {
+			filterProxies = append(filterProxies, allProxies[i])
+		}
+	}
+
+	return filterProxies, nil
 }

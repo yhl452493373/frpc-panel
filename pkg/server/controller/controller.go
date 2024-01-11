@@ -5,7 +5,6 @@ import (
 	"fmt"
 	ginI18n "github.com/gin-contrib/i18n"
 	"github.com/gin-gonic/gin"
-	"github.com/vaughan0/go-ini"
 	"log"
 	"net/http"
 )
@@ -56,46 +55,51 @@ func (c *HandleController) MakeLogoutFunc() func(context *gin.Context) {
 func (c *HandleController) MakeIndexFunc() func(context *gin.Context) {
 	return func(context *gin.Context) {
 		context.HTML(http.StatusOK, "index.html", gin.H{
-			"version":           c.Version,
-			"OldNameKey":        OldNameKey,
-			"showExit":          trimString(c.CommonInfo.AdminUser) != "" && trimString(c.CommonInfo.AdminPwd) != "",
-			"FrpcPanel":         ginI18n.MustGetMessage(context, "Frpc Panel"),
-			"ClientInfo":        ginI18n.MustGetMessage(context, "Client Info"),
-			"Overview":          ginI18n.MustGetMessage(context, "Overview"),
-			"Proxies":           ginI18n.MustGetMessage(context, "Proxies"),
-			"ServerAddress":     ginI18n.MustGetMessage(context, "Server Address"),
-			"ServerPort":        ginI18n.MustGetMessage(context, "Server Port"),
-			"Protocol":          ginI18n.MustGetMessage(context, "Protocol"),
-			"TCPMux":            ginI18n.MustGetMessage(context, "TCP Mux"),
-			"User":              ginI18n.MustGetMessage(context, "User"),
-			"UserToken":         ginI18n.MustGetMessage(context, "User Token"),
-			"AdminAddress":      ginI18n.MustGetMessage(context, "Admin Address"),
-			"AdminPort":         ginI18n.MustGetMessage(context, "Admin Port"),
-			"AdminUser":         ginI18n.MustGetMessage(context, "Admin User"),
-			"AdminPwd":          ginI18n.MustGetMessage(context, "Admin Pwd"),
-			"HeartbeatInterval": ginI18n.MustGetMessage(context, "Heartbeat Interval"),
-			"HeartbeatTimeout":  ginI18n.MustGetMessage(context, "Heartbeat Timeout"),
-			"TLSEnable":         ginI18n.MustGetMessage(context, "TLS Enable"),
-			"TLSKeyFile":        ginI18n.MustGetMessage(context, "TLS Key File"),
-			"TLSCertFile":       ginI18n.MustGetMessage(context, "TLS Cert File"),
-			"TLSTrustedCAFile":  ginI18n.MustGetMessage(context, "TLS Trusted CA File"),
-			"NewProxy":          ginI18n.MustGetMessage(context, "New Proxy"),
-			"RemoveProxy":       ginI18n.MustGetMessage(context, "Remove Proxy"),
-			"Update":            ginI18n.MustGetMessage(context, "Update"),
-			"Remove":            ginI18n.MustGetMessage(context, "Remove"),
-			"Basic":             ginI18n.MustGetMessage(context, "Basic"),
-			"Extra":             ginI18n.MustGetMessage(context, "Extra"),
-			"ProxyName":         ginI18n.MustGetMessage(context, "Proxy Name"),
-			"LocalIp":           ginI18n.MustGetMessage(context, "Local Ip"),
-			"LocalPort":         ginI18n.MustGetMessage(context, "Local Port"),
-			"RemotePort":        ginI18n.MustGetMessage(context, "Remote Port"),
-			"CustomDomains":     ginI18n.MustGetMessage(context, "Custom Domains"),
-			"Subdomain":         ginI18n.MustGetMessage(context, "Subdomain"),
-			"UseEncryption":     ginI18n.MustGetMessage(context, "Use Encryption"),
-			"true":              ginI18n.MustGetMessage(context, "true"),
-			"UseCompression":    ginI18n.MustGetMessage(context, "Use Compression"),
-			"ParamName":         ginI18n.MustGetMessage(context, "Param Name"),
-			"ParamValue":        ginI18n.MustGetMessage(context, "Param Value"),
+			"version":              c.Version,
+			"OriginalNameKey":      OriginalNameKey,
+			"showExit":             trimString(c.CommonInfo.AdminUser) != "" && trimString(c.CommonInfo.AdminPwd) != "",
+			"FrpcPanel":            ginI18n.MustGetMessage(context, "Frpc Panel"),
+			"ClientInfo":           ginI18n.MustGetMessage(context, "Client Info"),
+			"Overview":             ginI18n.MustGetMessage(context, "Overview"),
+			"Proxies":              ginI18n.MustGetMessage(context, "Proxies"),
+			"ServerAddress":        ginI18n.MustGetMessage(context, "Server Address"),
+			"ServerPort":           ginI18n.MustGetMessage(context, "Server Port"),
+			"Protocol":             ginI18n.MustGetMessage(context, "Protocol"),
+			"TCPMux":               ginI18n.MustGetMessage(context, "TCP Mux"),
+			"User":                 ginI18n.MustGetMessage(context, "User"),
+			"UserToken":            ginI18n.MustGetMessage(context, "User Token"),
+			"AdminAddress":         ginI18n.MustGetMessage(context, "Admin Address"),
+			"AdminPort":            ginI18n.MustGetMessage(context, "Admin Port"),
+			"AdminUser":            ginI18n.MustGetMessage(context, "Admin User"),
+			"AdminPwd":             ginI18n.MustGetMessage(context, "Admin Pwd"),
+			"HeartbeatInterval":    ginI18n.MustGetMessage(context, "Heartbeat Interval"),
+			"HeartbeatTimeout":     ginI18n.MustGetMessage(context, "Heartbeat Timeout"),
+			"TLSEnable":            ginI18n.MustGetMessage(context, "TLS Enable"),
+			"TLSKeyFile":           ginI18n.MustGetMessage(context, "TLS Key File"),
+			"TLSCertFile":          ginI18n.MustGetMessage(context, "TLS Cert File"),
+			"TLSTrustedCAFile":     ginI18n.MustGetMessage(context, "TLS Trusted CA File"),
+			"NewProxy":             ginI18n.MustGetMessage(context, "New Proxy"),
+			"RemoveProxy":          ginI18n.MustGetMessage(context, "Remove Proxy"),
+			"Update":               ginI18n.MustGetMessage(context, "Update"),
+			"Remove":               ginI18n.MustGetMessage(context, "Remove"),
+			"Basic":                ginI18n.MustGetMessage(context, "Basic"),
+			"Extra":                ginI18n.MustGetMessage(context, "Extra"),
+			"ProxyName":            ginI18n.MustGetMessage(context, "Proxy Name"),
+			"ProxyNameExample":     ginI18n.MustGetMessage(context, "Proxy Name Example"),
+			"LocalIP":              ginI18n.MustGetMessage(context, "Local IP"),
+			"LocalIPExample":       ginI18n.MustGetMessage(context, "Local IP Example"),
+			"LocalPort":            ginI18n.MustGetMessage(context, "Local Port"),
+			"LocalPortExample":     ginI18n.MustGetMessage(context, "Local Port Example"),
+			"RemotePort":           ginI18n.MustGetMessage(context, "Remote Port"),
+			"RemotePortExample":    ginI18n.MustGetMessage(context, "Remote Port Example"),
+			"CustomDomains":        ginI18n.MustGetMessage(context, "Custom Domains"),
+			"CustomDomainsExample": ginI18n.MustGetMessage(context, "Custom Domains Example"),
+			"Subdomain":            ginI18n.MustGetMessage(context, "Subdomain"),
+			"UseEncryption":        ginI18n.MustGetMessage(context, "Use Encryption"),
+			"true":                 ginI18n.MustGetMessage(context, "true"),
+			"UseCompression":       ginI18n.MustGetMessage(context, "Use Compression"),
+			"ParamName":            ginI18n.MustGetMessage(context, "Param Name"),
+			"ParamValue":           ginI18n.MustGetMessage(context, "Param Value"),
 		})
 	}
 }
@@ -103,6 +107,7 @@ func (c *HandleController) MakeIndexFunc() func(context *gin.Context) {
 func (c *HandleController) MakeLangFunc() func(context *gin.Context) {
 	return func(context *gin.Context) {
 		context.JSON(http.StatusOK, gin.H{
+			"Proxies":            ginI18n.MustGetMessage(context, "Proxies"),
 			"EmptyData":          ginI18n.MustGetMessage(context, "Empty data"),
 			"true":               ginI18n.MustGetMessage(context, "true"),
 			"false":              ginI18n.MustGetMessage(context, "false"),
@@ -114,7 +119,9 @@ func (c *HandleController) MakeLangFunc() func(context *gin.Context) {
 			"Status":             ginI18n.MustGetMessage(context, "Status"),
 			"Info":               ginI18n.MustGetMessage(context, "Info"),
 			"running":            ginI18n.MustGetMessage(context, "running"),
-			"LocalIp":            ginI18n.MustGetMessage(context, "Local Ip"),
+			"start error":        ginI18n.MustGetMessage(context, "start error"),
+			"new":                ginI18n.MustGetMessage(context, "new"),
+			"LocalIP":            ginI18n.MustGetMessage(context, "Local IP"),
 			"LocalPort":          ginI18n.MustGetMessage(context, "Local Port"),
 			"RemotePort":         ginI18n.MustGetMessage(context, "Remote Port"),
 			"UseEncryption":      ginI18n.MustGetMessage(context, "Use Encryption"),
@@ -135,69 +142,22 @@ func (c *HandleController) MakeLangFunc() func(context *gin.Context) {
 			"ProxyExist":         ginI18n.MustGetMessage(context, "Proxy Exist"),
 			"ProxyNotExist":      ginI18n.MustGetMessage(context, "Proxy Not Exist"),
 			"ClientTips":         ginI18n.MustGetMessage(context, "Client Tips"),
+			"and":                ginI18n.MustGetMessage(context, "and"),
+			"RequireNotAllEmpty": ginI18n.MustGetMessage(context, "Require Not All Empty"),
+			"RequireNotEmpty":    ginI18n.MustGetMessage(context, "Require Not Empty"),
+			"RequireNumber":      ginI18n.MustGetMessage(context, "Require Number"),
+			"RequireBoolean":     ginI18n.MustGetMessage(context, "Require Boolean"),
+			"RequireArray":       ginI18n.MustGetMessage(context, "Require Array"),
+			"Total":              ginI18n.MustGetMessage(context, "Total"),
+			"Items":              ginI18n.MustGetMessage(context, "Items"),
+			"Goto":               ginI18n.MustGetMessage(context, "Go to"),
+			"PerPage":            ginI18n.MustGetMessage(context, "Per Page"),
 		})
-	}
-}
-
-func (c *HandleController) MakeAddProxyFunc() func(context *gin.Context) {
-	return func(context *gin.Context) {
-		proxy := ini.Section{}
-
-		response := OperationResponse{
-			Success: true,
-			Code:    Success,
-			Message: "proxy add success",
-		}
-
-		err := context.BindJSON(&proxy)
-		if err != nil {
-			response.Success = false
-			response.Code = ParamError
-			response.Message = fmt.Sprintf("proxy add failed, param error : %v", err)
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		name := proxy[NameKey]
-
-		if trimString(name) == "" {
-			response.Success = false
-			response.Code = ParamError
-			response.Message = fmt.Sprintf("proxy add failed, proxy name invalid")
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		if _, exist := clientProxies[name]; exist {
-			response.Success = false
-			response.Code = ProxyExist
-			response.Message = fmt.Sprintf("proxy add failed, proxy exist")
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		clientProxies[name] = proxy
-
-		res := c.UpdateFrpcConfig()
-		if !res.Success {
-			response.Success = false
-			response.Code = res.Code
-			response.Message = fmt.Sprintf("proxy add failed, error : %v", res.Message)
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		context.JSON(0, &response)
 	}
 }
 
 func (c *HandleController) MakeUpdateProxyFunc() func(context *gin.Context) {
 	return func(context *gin.Context) {
-		proxy := ini.Section{}
 
 		response := OperationResponse{
 			Success: true,
@@ -205,119 +165,21 @@ func (c *HandleController) MakeUpdateProxyFunc() func(context *gin.Context) {
 			Message: "proxy update success",
 		}
 
-		err := context.BindJSON(&proxy)
+		data, err := context.GetRawData()
 		if err != nil {
 			response.Success = false
-			response.Code = ParamError
-			response.Message = fmt.Sprintf("update failed, param error : %v", err)
+			response.Code = http.StatusNoContent
+			response.Message = fmt.Sprintf("update failed, error : %v", err)
 			log.Printf(response.Message)
 			context.JSON(http.StatusOK, &response)
 			return
 		}
 
-		oldName := proxy[OldNameKey]
-		name := proxy[NameKey]
-
-		if trimString(oldName) == "" || trimString(name) == "" {
-			response.Success = false
-			response.Code = ParamError
-			response.Message = fmt.Sprintf("proxy add failed, proxy name invalid")
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		if _, exist := clientProxies[oldName]; !exist {
-			response.Success = false
-			response.Code = ProxyNotExist
-			response.Message = fmt.Sprintf("proxy update failed, proxy not exist")
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		if oldName != name {
-			if _, exist := clientProxies[name]; exist {
-				response.Success = false
-				response.Code = ProxyExist
-				response.Message = fmt.Sprintf("proxy update failed, proxy exist")
-				log.Printf(response.Message)
-				context.JSON(http.StatusOK, &response)
-				return
-			}
-		}
-
-		delete(clientProxies, oldName)
-		clientProxies[name] = proxy
-
-		res := c.UpdateFrpcConfig()
+		res := c.UpdateFrpcConfig(data)
 		if !res.Success {
 			response.Success = false
 			response.Code = res.Code
-			response.Message = fmt.Sprintf("user update failed, error : %v", res.Message)
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		context.JSON(http.StatusOK, &response)
-	}
-}
-
-func (c *HandleController) MakeRemoveProxyFunc() func(context *gin.Context) {
-	return func(context *gin.Context) {
-		var proxies []ini.Section
-
-		response := OperationResponse{
-			Success: true,
-			Code:    Success,
-			Message: "proxy remove success",
-		}
-
-		err := context.BindJSON(&proxies)
-		if err != nil {
-			response.Success = false
-			response.Code = ParamError
-			response.Message = fmt.Sprintf("proxy remove failed, param error : %v", err)
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		tempProxyNames := make([]string, len(proxies))
-		for index, proxy := range proxies {
-			name := proxy[NameKey]
-
-			if trimString(name) == "" {
-				response.Success = false
-				response.Code = ParamError
-				response.Message = fmt.Sprintf("proxy remove failed, proxy %v name invalid", name)
-				log.Printf(response.Message)
-				context.JSON(http.StatusOK, &response)
-				return
-			}
-
-			if _, exist := clientProxies[name]; !exist {
-				response.Success = false
-				response.Code = ProxyExist
-				response.Message = fmt.Sprintf("proxy remove failed, proxy %v not exist", name)
-				log.Printf(response.Message)
-				context.JSON(http.StatusOK, &response)
-				return
-			}
-
-			tempProxyNames[index] = name
-		}
-
-		for _, name := range tempProxyNames {
-			delete(clientProxies, name)
-		}
-
-		res := c.UpdateFrpcConfig()
-		if !res.Success {
-			response.Success = false
-			response.Code = res.Code
-			response.Message = fmt.Sprintf("proxy remvoe failed, error : %v", res.Message)
+			response.Message = fmt.Sprintf("update failed, error : %v", res.Message)
 			log.Printf(response.Message)
 			context.JSON(http.StatusOK, &response)
 			return
@@ -363,11 +225,11 @@ func (c *HandleController) MakeProxyFunc() func(context *gin.Context) {
 	}
 }
 
-func (c *HandleController) UpdateFrpcConfig() ProxyResponse {
+func (c *HandleController) UpdateFrpcConfig(tomlStr []byte) ProxyResponse {
 	res := ProxyResponse{}
 
 	requestUrl := c.buildRequestUrl("/api/config")
-	request, _ := http.NewRequest("PUT", requestUrl, bytes.NewReader(serializeSections()))
+	request, _ := http.NewRequest("PUT", requestUrl, bytes.NewReader(tomlStr))
 	response, err := c.getClientResponse(request, c.buildClient())
 
 	if err != nil {
