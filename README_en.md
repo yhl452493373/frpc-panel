@@ -6,6 +6,8 @@ frpc-panel is a client tool of https://github.com/fatedier/frp , it's used to sh
 
 frps-panel will run as one single process and manage frpc proxy info with frpc's api.
 
+## Since version 2.0.0,this plugin only support frp version >= v0.52.0
+
 ## Features
 
 + Show frpc basic info
@@ -17,14 +19,21 @@ frps-panel will run as one single process and manage frpc proxy info with frpc's
 
 ## Usage
 
-1.add config in frpc's config file '`frpc.ini`:
+1.add config in frpc's config file '`frpc.toml`:
 
-```ini
-[common]
-admin_addr = 127.0.0.1
-admin_port = 7400
-admin_user = admin
-admin_pwd = admin
+```toml
+webServer.addr = "127.0.0.1"
+webServer.port = 7400
+webServer.user = "admin"
+webServer.password = "admin"
+```
+or
+```toml
+[webServer]
+addr = "127.0.0.1"
+port = 7400
+user = "admin"
+password = "admin"
 ```
 
 2.`frpc-panel.toml`:

@@ -1,13 +1,9 @@
 var loadClientInfo = (function ($) {
-    var i18n = {};
-
     /**
      * get client info
-     * @param lang {Map<string,string>} language json
      * @param title {string} page title
      */
-    function loadClientInfo(lang, title) {
-        i18n = lang;
+    function loadClientInfo( title) {
         $("#title").text(title);
         $('#content').empty();
         var loading = layui.layer.load();
@@ -16,20 +12,6 @@ var loadClientInfo = (function ($) {
             type: 'none'
         }).done(function (result) {
             if (result.success) {
-                var proxies = [];
-                result.data.proxies.forEach(function (proxy) {
-                    var items = flatJSON(proxy.ProxyConfigurer);
-                    proxies.push(expandJSON(items))
-                })
-                var visitors = [];
-                result.data.visitors.forEach(function (visitor) {
-                    var items = flatJSON(visitor.VisitorConfigurer);
-                    visitors.push(expandJSON(items))
-                })
-
-                window.clientConfig = $.extend(true, {}, result.data);
-                window.clientConfig.proxies = proxies;
-                window.clientConfig.visitors = visitors;
                 renderClientInfo(result.data);
             } else {
                 layui.layer.msg(result.message);

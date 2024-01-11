@@ -1,13 +1,9 @@
 var loadOverview = (function ($) {
-    var i18n = {};
-
     /**
      * get proxy info
-     * @param lang {{}} language json
      * @param title page title
      */
-    function loadOverview(lang, title) {
-        i18n = lang;
+    function loadOverview(title) {
         $("#title").text(title);
         $('#content').empty();
         var loading = layui.layer.load();
@@ -63,7 +59,11 @@ var loadOverview = (function ($) {
             text: {none: i18n['EmptyData']},
             cols: [cols],
             page: {
-                layout: navigator.language.indexOf("zh") === -1 ? ['first', 'prev', 'next', 'last'] : ['prev', 'page', 'next', 'skip', 'count', 'limit']
+                limitTemplet: function (item) {
+                    return item + i18n['PerPage'];
+                },
+                skipText: [i18n['Goto'], '', i18n['Confirm']],
+                countText: [i18n['Total'], i18n['Items']]
             },
             data: dataList,
             initSort: {

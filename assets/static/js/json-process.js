@@ -1,4 +1,4 @@
-(function () {
+(function ($) {
     //param names in Basic tab
     var basicParams = [
         {
@@ -24,10 +24,10 @@
             defaultValue: '-'
         }, {
             name: 'transport.useEncryption',
-            defaultValue: 'false',
+            defaultValue: false,
         }, {
             name: 'transport.useCompression',
-            defaultValue: 'false',
+            defaultValue: false,
         }
     ];
     var mapParams = [{
@@ -103,17 +103,41 @@
 
     function expandJSON(obj) {
         var newObj = {};
+        var inPopup = $('#proxyForm').length !== 0;
         for (var name in obj) {
             var value = obj[name];
             if (value === '') {
                 continue;
             }
+            var nameI18n = name;
+            if (inPopup) {
+                nameI18n = $('#proxyForm [name="' + name + '"]').closest('.layui-form-item').children('.layui-form-label').text();
+                if (nameI18n === '') {
+                    nameI18n = name;
+                }
+            }
+
             if (paramTypes.number.indexOf(name) !== -1) {
-                value = parseInt(value) || 0;
+                value = parseInt(value);
+                if (isNaN(value)) {
+                    throw new Error(nameI18n + i18n['RequireNumber']);
+                }
             } else if (paramTypes.boolean.indexOf(name) !== -1) {
-                value = Boolean(value) || false;
+                if (typeof value === "string" && (value === 'true' || value === 'false')) {
+                    value = value === 'true';
+                } else if (typeof value !== 'boolean') {
+                    throw new Error(nameI18n + i18n['RequireBoolean']);
+                }
             } else if (paramTypes.array.indexOf(name) !== -1) {
-                value = eval('(' + value + ')') || [];
+                try {
+                    if (/^\s*\[.*]\s*$/.test(value)) {
+                        value = eval('(' + value + ')') || [];
+                    } else {
+                        throw new Error('value format incorrect');
+                    }
+                } catch (e) {
+                    throw new Error(nameI18n + i18n['RequireArray']);
+                }
             } else {
                 for (var i = 0; i < paramTypes.map.length; i++) {
                     var key = paramTypes.map[i];
@@ -126,6 +150,7 @@
                     }
                 }
             }
+
             expandJSONKeys(newObj, name.split("."), value, false);
         }
         return newObj;
@@ -181,4 +206,4 @@
     window.expandJSONKeys = expandJSONKeys;
     window.expandJSON = expandJSON;
     window.flatJSON = flatJSON;
-})();
+})(layui.$);

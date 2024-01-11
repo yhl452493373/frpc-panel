@@ -6,9 +6,9 @@
     <link rel="stylesheet" href="./static/css/layui-theme-dark.css?v=${ .version }">
     <link rel="stylesheet" href="./static/css/index.css?v=${ .version }">
     <link rel="stylesheet" href="./static/css/color.css?v=${ .version }">
-    <script src="./static/js/json-process.js?v=${ .version }"></script>
-    <script src="./static/js/toml.js?v=${ .version }"></script>
     <script src="./static/lib/layui/layui.js?v=${ .version }"></script>
+    <script src="./static/js/toml.js?v=${ .version }"></script>
+    <script src="./static/js/json-process.js?v=${ .version }"></script>
     <script src="./static/js/index-client-info.js?v=${ .version }"></script>
     <script src="./static/js/index-proxy-overview.js?v=${ .version }"></script>
     <script src="./static/js/index-proxy-list.js?v=${ .version }"></script>
@@ -146,51 +146,51 @@
 </script>
 
 <!--用户列表-添加用户表单模板-->
-<script type="text/html" id="addProxyTemplate">
-    <form class="layui-form" id="addProxyForm" lay-filter="addProxyForm">
+<script type="text/html" id="proxyFormTemplate">
+    <form class="layui-form" id="proxyForm" lay-filter="proxyForm">
         <div class="layui-tab layui-tab-brief">
             <ul class="layui-tab-title">
                 <li class="layui-this">${ .Basic }</li>
                 <li>${ .Extra }</li>
             </ul>
             <div class="layui-tab-content">
-                <input type="hidden" name="type">
+                <input type="hidden" name="type" id="proxyType">
                 <input type="hidden" name="${ .OriginalNameKey }" id="originalNameKey">
                 <div class="layui-tab-item layui-show">
                     <div class="layui-form-item">
                         <label class="layui-form-label">${ .ProxyName }</label>
                         <div class="layui-input-block">
-                            <input type="text" name="name" placeholder="${ .ProxyName }" autocomplete="off"
-                                   class="layui-input"/>
+                            <input type="text" name="name" id="proxyName" placeholder="${ .ProxyNameExample }"
+                                   autocomplete="off" class="layui-input" lay-verify="proxyName"/>
                         </div>
                     </div>
                     <div class="layui-form-item">
                         <label class="layui-form-label">${ .LocalIP }</label>
                         <div class="layui-input-block">
-                            <input type="text" name="localIP" placeholder="${ .LocalIP }" autocomplete="off"
-                                   class="layui-input"/>
+                            <input type="text" name="localIP" id="localIP" placeholder="${ .LocalIPExample }"
+                                   autocomplete="off" class="layui-input"/>
                         </div>
                     </div>
                     <div class="layui-form-item">
                         <label class="layui-form-label">${ .LocalPort }</label>
                         <div class="layui-input-block">
-                            <input type="text" name="localPort" placeholder="${ .LocalPort }" autocomplete="off"
-                                   class="layui-input"/>
+                            <input type="text" name="localPort" id="localPort" placeholder="${ .LocalPortExample }"
+                                   autocomplete="off" class="layui-input" lay-verify="localPort"/>
                         </div>
                     </div>
                     {{# if (d.type.toLowerCase() === 'http' || d.type.toLowerCase() === 'https') { }}
                     <div class="layui-form-item http https">
                         <label class="layui-form-label">${ .CustomDomains }</label>
                         <div class="layui-input-block">
-                            <textarea name="customDomains" placeholder="${ .CustomDomains }" autocomplete="off"
-                                      class="layui-textarea"></textarea>
+                            <textarea name="customDomains" id="customDomains" placeholder="${ .CustomDomainsExample }"
+                                      autocomplete="off" class="layui-textarea" lay-verify="domain"></textarea>
                         </div>
                     </div>
                     <div class="layui-form-item layui-form-text http https">
                         <label class="layui-form-label">${ .Subdomain }</label>
                         <div class="layui-input-block">
-                            <textarea name="subdomain" placeholder="${ .Subdomain }" autocomplete="off"
-                                      class="layui-textarea"></textarea>
+                            <textarea name="subdomain" id="subdomain" placeholder="${ .Subdomain }" autocomplete="off"
+                                      class="layui-textarea" lay-verify="domain"></textarea>
                         </div>
                     </div>
                     {{# } }}
@@ -198,7 +198,8 @@
                     <div class="layui-form-item tcp udp">
                         <label class="layui-form-label">${ .RemotePort }</label>
                         <div class="layui-input-block">
-                            <input type="text" name="remotePort" placeholder="${ .RemotePort }" autocomplete="off"
+                            <input type="text" name="remotePort" placeholder="${ .RemotePortExample }"
+                                   autocomplete="off"
                                    class="layui-input"/>
                         </div>
                     </div>
