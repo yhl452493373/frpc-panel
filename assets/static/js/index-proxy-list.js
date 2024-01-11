@@ -320,16 +320,14 @@ var loadProxyInfo = (function ($) {
         }, function (index) {
             layui.layer.close(index);
             var proxies = clientConfig.proxies;
-            var newProxies = [];
-            for (var i = 0; i < proxies.length; i++) {
-                var proxy = proxies[i];
-                for (var temp of data) {
-                    if (temp.name !== proxy.name) {
-                        newProxies.push(proxy);
+            for (var i = 0; i < data.length; i++) {
+                proxies.forEach(function (proxy, j) {
+                    if (data[i].name === proxy.name) {
+                        proxies.splice(j, 1);
                     }
-                }
+                });
             }
-            clientConfig.proxies = newProxies;
+
             updateFrpcConfig(index);
         });
     }

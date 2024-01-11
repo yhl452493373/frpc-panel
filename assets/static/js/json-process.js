@@ -40,6 +40,7 @@
             'healthCheck.maxFailed',
             'healthCheck.intervalSeconds',
             'localPort',
+            'remotePort'
         ],
         boolean: [
             'transport.useEncryption',
