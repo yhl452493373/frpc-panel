@@ -13,7 +13,7 @@ for binFile in $list
       newBinFile=${newBinFile%%.exe*}
     fi
     cp "$binFile" "$tmpFile"
-    zip -r "$newBinFile-$version".zip "$tmpFile" frpc-panel.toml frpc-tokens.toml assets -x "*.git*" "*.idea*" "*.DS_Store" "*.contentFlavour"
+    zip -r "$newBinFile-$version".zip "$tmpFile" frpc-panel.toml assets -x "*.git*" "*.idea*" "*.DS_Store" "*.contentFlavour"
     rm -rf "$binFile" "$tmpFile"
   done
-  rm -rf frpc-panel.toml frpc-tokens.toml assets
+  rm -rf frpc-panel.toml assets
