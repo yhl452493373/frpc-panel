@@ -336,7 +336,13 @@ module.exports = Parser
 module.exports = stringify
 module.exports.value = stringifyInline
 
-function stringify(obj, separator) {
+/**
+ *
+ * @param obj json object
+ * @param options {{separator: string, indentSize: number}} options
+ * @returns {string|null}
+ */
+function stringify(obj, options) {
   if (obj === null) throw typeError('null')
   if (obj === void (0)) throw typeError('undefined')
   if (typeof obj !== 'object') throw typeError(typeof obj)
@@ -345,7 +351,19 @@ function stringify(obj, separator) {
   if (obj == null) return null
   const type = tomlType(obj)
   if (type !== 'table') throw typeError(type)
-  return stringifyObject('', '', obj, separator)
+  var defaultOptions = {
+    separator: '',
+    indentSize: 0,
+  }
+  if (options == null)
+    options = defaultOptions
+  else
+    options = {
+      separator: options.separator || defaultOptions.separator,
+      indentSize: options.indentSize || defaultOptions.indentSize,
+    }
+
+  return stringifyObject('', '', obj, options)
 }
 
 function typeError (type) {
@@ -371,7 +389,7 @@ function toJSON (obj) {
   return nobj
 }
 
-function stringifyObject (prefix, indent, obj, separator) {
+function stringifyObject (prefix, indent, obj, options) {
   obj = toJSON(obj)
   let inlineKeys
   let complexKeys
@@ -382,13 +400,13 @@ function stringifyObject (prefix, indent, obj, separator) {
   inlineKeys.forEach(key => {
     var type = tomlType(obj[key])
     if (type !== 'undefined' && type !== 'null') {
-      result.push(inlineIndent + stringifyKey(key) + ' = ' + stringifyAnyInline(obj[key], true, separator))
+      result.push(inlineIndent + stringifyKey(key) + ' = ' + stringifyAnyInline(obj[key], true, options))
     }
   })
   if (result.length > 0) result.push('')
-  const complexIndent = prefix && inlineKeys.length > 0 ? indent + '  ' : ''
+  const complexIndent = prefix && inlineKeys.length > 0 ? (indent + ''.padStart(options.indentSize, ' ')) : ''
   complexKeys.forEach(key => {
-    result.push(stringifyComplex(prefix, complexIndent, key, obj[key], separator))
+    result.push(stringifyComplex(prefix, complexIndent, key, obj[key], options))
   })
   return result.join('\n')
 }
@@ -479,7 +497,7 @@ function stringifyMultilineString (str) {
   return '"""\n' + escaped + '"""'
 }
 
-function stringifyAnyInline (value, multilineOk, separator) {
+function stringifyAnyInline (value, multilineOk, options) {
   let type = tomlType(value)
   if (type === 'string') {
     if (multilineOk && /\n/.test(value)) {
@@ -488,10 +506,10 @@ function stringifyAnyInline (value, multilineOk, separator) {
       type = 'string-literal'
     }
   }
-  return stringifyInline(value, type, separator)
+  return stringifyInline(value, type, options)
 }
 
-function stringifyInline (value, type, separator) {
+function stringifyInline (value, type, options) {
   /* istanbul ignore if */
   if (!type) type = tomlType(value)
   switch (type) {
@@ -502,9 +520,9 @@ function stringifyInline (value, type, separator) {
     case 'string-literal':
       return stringifyLiteralString(value)
     case 'integer':
-      return stringifyInteger(value, separator)
+      return stringifyInteger(value, options.separator)
     case 'float':
-      return stringifyFloat(value, separator)
+      return stringifyFloat(value, options.separator)
     case 'boolean':
       return stringifyBoolean(value)
     case 'datetime':
@@ -569,19 +587,19 @@ function stringifyInlineTable (value) {
   return '{ ' + result.join(', ') + (result.length > 0 ? ' ' : '') + '}'
 }
 
-function stringifyComplex (prefix, indent, key, value, separator) {
+function stringifyComplex (prefix, indent, key, value, options) {
   const valueType = tomlType(value)
   /* istanbul ignore else */
   if (valueType === 'array') {
-    return stringifyArrayOfTables(prefix, indent, key, value, separator)
+    return stringifyArrayOfTables(prefix, indent, key, value, options)
   } else if (valueType === 'table') {
-    return stringifyComplexTable(prefix, indent, key, value, separator)
+    return stringifyComplexTable(prefix, indent, key, value, options)
   } else {
     throw typeError(valueType)
   }
 }
 
-function stringifyArrayOfTables (prefix, indent, key, values, separator) {
+function stringifyArrayOfTables (prefix, indent, key, values, options) {
   values = toJSON(values)
   const firstValueType = tomlType(values[0])
   /* istanbul ignore if */
@@ -591,18 +609,18 @@ function stringifyArrayOfTables (prefix, indent, key, values, separator) {
   values.forEach(table => {
     if (result.length > 0) result += '\n'
     result += indent + '[[' + fullKey + ']]\n'
-    result += stringifyObject(fullKey + '.', indent, table, separator)
+    result += stringifyObject(fullKey + '.', indent, table, options)
   })
   return result
 }
 
-function stringifyComplexTable (prefix, indent, key, value, separator) {
+function stringifyComplexTable (prefix, indent, key, value, options) {
   const fullKey = prefix + stringifyKey(key)
   let result = ''
   if (getInlineKeys(value).length > 0) {
     result += indent + '[' + fullKey + ']\n'
   }
-  return result + stringifyObject(fullKey + '.', indent, value, separator)
+  return result + stringifyObject(fullKey + '.', indent, value, options)
 }
 
 },{}],10:[function(require,module,exports){

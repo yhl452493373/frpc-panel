@@ -39,8 +39,6 @@ func (c *HandleController) Register(rootDir string, engine *gin.Engine) {
 		group = engine.Group("/")
 	}
 	group.GET("/", c.MakeIndexFunc())
-	group.POST("/add", c.MakeAddProxyFunc())
 	group.POST("/update", c.MakeUpdateProxyFunc())
-	group.POST("/remove", c.MakeRemoveProxyFunc())
 	group.GET("/proxy/*serverApi", c.MakeProxyFunc())
 }

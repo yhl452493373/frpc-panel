@@ -1,4 +1,4 @@
-(function (){
+(function () {
     //param names in Basic tab
     var basicParams = [
         {
@@ -24,10 +24,10 @@
             defaultValue: '-'
         }, {
             name: 'transport.useEncryption',
-            defaultValue: 'true',
+            defaultValue: 'false',
         }, {
             name: 'transport.useCompression',
-            defaultValue: 'true',
+            defaultValue: 'false',
         }
     ];
     var mapParams = [{
@@ -177,6 +177,7 @@
         return flat(obj);
     }
 
+    window.basicParams = basicParams;
     window.expandJSONKeys = expandJSONKeys;
     window.expandJSON = expandJSON;
     window.flatJSON = flatJSON;

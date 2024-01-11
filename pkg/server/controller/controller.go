@@ -3,11 +3,8 @@ package controller
 import (
 	"bytes"
 	"fmt"
-	v1 "github.com/fatedier/frp/pkg/config/v1"
 	ginI18n "github.com/gin-contrib/i18n"
 	"github.com/gin-gonic/gin"
-	"github.com/pelletier/go-toml/v2"
-	"github.com/vaughan0/go-ini"
 	"log"
 	"net/http"
 )
@@ -59,7 +56,7 @@ func (c *HandleController) MakeIndexFunc() func(context *gin.Context) {
 	return func(context *gin.Context) {
 		context.HTML(http.StatusOK, "index.html", gin.H{
 			"version":           c.Version,
-			"OldNameKey":        OldNameKey,
+			"OriginalNameKey":   OriginalNameKey,
 			"showExit":          trimString(c.CommonInfo.AdminUser) != "" && trimString(c.CommonInfo.AdminPwd) != "",
 			"FrpcPanel":         ginI18n.MustGetMessage(context, "Frpc Panel"),
 			"ClientInfo":        ginI18n.MustGetMessage(context, "Client Info"),
@@ -143,66 +140,8 @@ func (c *HandleController) MakeLangFunc() func(context *gin.Context) {
 	}
 }
 
-func (c *HandleController) MakeAddProxyFunc() func(context *gin.Context) {
-	return func(context *gin.Context) {
-		proxy := ini.Section{}
-
-		response := OperationResponse{
-			Success: true,
-			Code:    Success,
-			Message: "proxy add success",
-		}
-
-		err := context.BindJSON(&proxy)
-		if err != nil {
-			response.Success = false
-			response.Code = ParamError
-			response.Message = fmt.Sprintf("proxy add failed, param error : %v", err)
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		name := proxy[NameKey]
-
-		if trimString(name) == "" {
-			response.Success = false
-			response.Code = ParamError
-			response.Message = fmt.Sprintf("proxy add failed, proxy name invalid")
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		if _, exist := clientProxies[name]; exist {
-			response.Success = false
-			response.Code = ProxyExist
-			response.Message = fmt.Sprintf("proxy add failed, proxy exist")
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		clientProxies[name] = proxy
-
-		res := c.UpdateFrpcConfig()
-		if !res.Success {
-			response.Success = false
-			response.Code = res.Code
-			response.Message = fmt.Sprintf("proxy add failed, error : %v", res.Message)
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		context.JSON(0, &response)
-	}
-}
-
 func (c *HandleController) MakeUpdateProxyFunc() func(context *gin.Context) {
 	return func(context *gin.Context) {
-		proxyType := context.Query("type")
-		proxy := v1.NewProxyConfigurerByType(v1.ProxyType(proxyType))
 
 		response := OperationResponse{
 			Success: true,
@@ -210,27 +149,15 @@ func (c *HandleController) MakeUpdateProxyFunc() func(context *gin.Context) {
 			Message: "proxy update success",
 		}
 
-		var b = make([]byte, context.Request.ContentLength)
-		context.Request.Body.Read(b)
-		var s = string(b)
-		log.Print(s)
-		toml.Unmarshal(b, &proxy)
+		data, _ := context.GetRawData()
 
-		err := context.BindJSON(&proxy)
-		if err != nil {
-			response.Success = false
-			response.Code = ParamError
-			response.Message = fmt.Sprintf("update failed, param error : %v", err)
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
+		c.UpdateFrpcConfig(data)
 
 		context.JSON(200, &response)
 
 		//proxy.GetBaseConfig()
 		//
-		//oldName := proxy[OldNameKey]
+		//oldName := proxy[OriginalNameKey]
 		//name := proxy[NameKey]
 		//
 		//if trimString(oldName) == "" || trimString(name) == "" {
@@ -279,69 +206,6 @@ func (c *HandleController) MakeUpdateProxyFunc() func(context *gin.Context) {
 	}
 }
 
-func (c *HandleController) MakeRemoveProxyFunc() func(context *gin.Context) {
-	return func(context *gin.Context) {
-		var proxies []ini.Section
-
-		response := OperationResponse{
-			Success: true,
-			Code:    Success,
-			Message: "proxy remove success",
-		}
-
-		err := context.BindJSON(&proxies)
-		if err != nil {
-			response.Success = false
-			response.Code = ParamError
-			response.Message = fmt.Sprintf("proxy remove failed, param error : %v", err)
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		tempProxyNames := make([]string, len(proxies))
-		for index, proxy := range proxies {
-			name := proxy[NameKey]
-
-			if trimString(name) == "" {
-				response.Success = false
-				response.Code = ParamError
-				response.Message = fmt.Sprintf("proxy remove failed, proxy %v name invalid", name)
-				log.Printf(response.Message)
-				context.JSON(http.StatusOK, &response)
-				return
-			}
-
-			if _, exist := clientProxies[name]; !exist {
-				response.Success = false
-				response.Code = ProxyExist
-				response.Message = fmt.Sprintf("proxy remove failed, proxy %v not exist", name)
-				log.Printf(response.Message)
-				context.JSON(http.StatusOK, &response)
-				return
-			}
-
-			tempProxyNames[index] = name
-		}
-
-		for _, name := range tempProxyNames {
-			delete(clientProxies, name)
-		}
-
-		res := c.UpdateFrpcConfig()
-		if !res.Success {
-			response.Success = false
-			response.Code = res.Code
-			response.Message = fmt.Sprintf("proxy remvoe failed, error : %v", res.Message)
-			log.Printf(response.Message)
-			context.JSON(http.StatusOK, &response)
-			return
-		}
-
-		context.JSON(http.StatusOK, &response)
-	}
-}
-
 func (c *HandleController) MakeProxyFunc() func(context *gin.Context) {
 	return func(context *gin.Context) {
 		res := ProxyResponse{}
@@ -378,11 +242,11 @@ func (c *HandleController) MakeProxyFunc() func(context *gin.Context) {
 	}
 }
 
-func (c *HandleController) UpdateFrpcConfig() ProxyResponse {
+func (c *HandleController) UpdateFrpcConfig(tomlStr []byte) ProxyResponse {
 	res := ProxyResponse{}
 
 	requestUrl := c.buildRequestUrl("/api/config")
-	request, _ := http.NewRequest("PUT", requestUrl, bytes.NewReader(serializeSections()))
+	request, _ := http.NewRequest("PUT", requestUrl, bytes.NewReader(tomlStr))
 	response, err := c.getClientResponse(request, c.buildClient())
 
 	if err != nil {

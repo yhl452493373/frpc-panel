@@ -219,8 +219,8 @@ var loadProxyInfo = (function ($) {
             },
             success: function (layero, index, that) {
                 //get and set old name for update form
-                var oldNameKey = layero.find('#oldName').attr('name');
-                basicData[oldNameKey] = basicData.name;
+                var originalNameKey = layero.find('#originalNameKey').attr('name');
+                basicData[originalNameKey] = basicData.name;
                 layui.form.val('addProxyForm', flatJSON(basicData));
                 proxyPopupSuccess();
             }
@@ -259,22 +259,26 @@ var loadProxyInfo = (function ($) {
      */
     function addOrUpdate(data, index, update) {
         var loading = layui.layer.load();
-        var url = '';
+        var originalNameKey = $('#originalNameKey').attr('name');
+        var proxies = clientConfig.proxies;
         if (update) {
-            url = '/update?type=' + currentProxyType;
+            for (var i = 0; i < proxies.length; i++) {
+                if (data[originalNameKey] === proxies[i].name) {
+                    delete data[originalNameKey];
+                    proxies[i] = expandJSON(data);
+                }
+            }
         } else {
-            url = '/add?type=' + currentProxyType;
+            proxies.push(expandJSON(data));
         }
 
-        var tomlStr = TOML.stringify(expandJSON(data));
-
-        //todo get all proxy and replace or add a new proxy in it
+        var tomlStr = TOML.stringify(clientConfig);
 
         $.ajax({
-            url: url,
+            url: '/update',
             type: 'post',
-            contentType: 'application/json',
-            data: JSON.stringify(expandJSON(data)),
+            contentType: 'text/plain',
+            data: tomlStr,
             success: function (result) {
                 if (result.success) {
                     layui.layer.close(index);

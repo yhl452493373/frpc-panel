@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"github.com/fatedier/frp/pkg/config"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
-	"github.com/vaughan0/go-ini"
 	"io"
 	"log"
 	"net/http"
-	"sort"
 	"strconv"
 	"strings"
 )
@@ -20,44 +18,6 @@ func trimString(str string) string {
 
 func equalIgnoreCase(source string, target string) bool {
 	return strings.ToUpper(source) == strings.ToUpper(target)
-}
-
-func sortSectionKeys(object ini.Section) []string {
-	var keys []string
-	for key := range object {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-	return keys
-}
-
-func serializeSections() []byte {
-	var build strings.Builder
-	build.WriteString("[common]\n")
-
-	for _, key := range sortSectionKeys(clientCommon) {
-		build.WriteString(fmt.Sprintf("%s = %s\n", key, clientCommon[key]))
-	}
-	build.WriteString("\n")
-
-	sections := Sections{clientProxies}
-
-	for _, sectionInfo := range sections.sort() {
-		name := sectionInfo.Name
-		build.WriteString(fmt.Sprintf("[%s]\n", name))
-		section := sectionInfo.Section
-
-		for _, key := range sortSectionKeys(section) {
-			value := section[key]
-			if key == NameKey || key == OldNameKey || trimString(value) == "" {
-				continue
-			}
-			build.WriteString(fmt.Sprintf("%s = %s\n", key, value))
-		}
-		build.WriteString("\n")
-	}
-
-	return []byte(build.String())
 }
 
 func (c *HandleController) buildRequestUrl(serverApi string) string {

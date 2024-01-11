@@ -1,3 +1,4 @@
+window.clientConfig = {};
 (function ($) {
     $(function () {
         function init() {
